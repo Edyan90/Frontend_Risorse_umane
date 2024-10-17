@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Alert, Button, Form, Row } from "react-bootstrap";
+import { Alert, Form, Row } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { setLogin } from "../redux/actions";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -32,7 +33,7 @@ const Login = () => {
         console.log(data);
         setError(false);
         setSuccess(true);
-        dispatch({ type: "LOGIN", payload: data.token });
+        dispatch(setLogin(data.token));
         localStorage.setItem("token", data.token);
         navigate("/home");
       } else throw new Error(data.message);
@@ -49,35 +50,35 @@ const Login = () => {
   };
   return (
     <Row className="text-start">
-      <Form onSubmit={(e) => handleSubmit(e)}>
+      <Form onSubmit={(e) => handleSubmit(e)} className="form">
         {hasError ? <Alert variant="danger">{errorMessage}</Alert> : ""}
         {success ? <Alert variant="primary">Login done</Alert> : ""}
-        <Form.Group className="mb-3 w-50 " controlId="email">
-          <Form.Label className="">Username</Form.Label>
+        <Form.Group className="mb-3 mt-2" controlId="email">
+          <Form.Label>Username</Form.Label>
           <Form.Control
-            className="bg-primary-subtle"
+            className="field"
             type="text"
-            placeholder="Enter Username"
+            placeholder="Inserisci username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </Form.Group>
 
-        <Form.Group className="mb-3 w-50" controlId="password">
+        <Form.Group className="mb-3" controlId="password">
           <Form.Label>Password</Form.Label>
           <Form.Control
-            className="bg-primary-subtle"
+            className="field"
             type="password"
-            placeholder="Password"
+            placeholder="Inserisci password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </Form.Group>
-        <Button variant="primary" type="submit">
+        <button className="button01 my-2 w-50" type="submit">
           Accedi
-        </Button>
+        </button>
       </Form>
     </Row>
   );
