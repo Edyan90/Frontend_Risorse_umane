@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setListBustePaga } from "../redux/actions";
-import { Button, Card, Col, Row } from "react-bootstrap";
+import { Button, Col, Row, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 const BustePaga = () => {
@@ -37,68 +37,74 @@ const BustePaga = () => {
     <Row>
       {dipendente && dipendente.ruolo === "DIPENDENTE" ? (
         dipendente.bustepaga && dipendente.bustepaga.length > 0 ? (
-          dipendente.bustepaga.map((bustapaga) => (
-            <Col key={bustapaga.id}>
-              <Card style={{ width: "17rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <p>
-                    <strong>BustaPaga ID:</strong> {bustapaga.id}
-                  </p>
-                  <p>
-                    <strong>Data: </strong> {bustapaga.data}
-                  </p>
-                  <p>
-                    <strong>Importo totale: </strong> {bustapaga.importoTotale}
-                  </p>
-                  <p>
-                    <strong> Ore lavorate extra :</strong> {bustapaga.oreLavorateExtra} h
-                  </p>
-
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Dipendente</th>
+                <th>BustaPaga ID</th>
+                <th>Data</th>
+                <th>Importo Totale</th>
+                <th>Ore Lavorate Extra</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dipendente.bustepaga.map((bustapaga) => (
+                <tr key={bustapaga.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{bustapaga.id}</td>
+                  <td>{bustapaga.data}</td>
+                  <td>{bustapaga.importoTotale} €</td>
+                  <td>{bustapaga.oreLavorateExtra} h</td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         ) : (
-          <Card>
-            <Card.Body>
-              <Card.Text>
-                <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-              </Card.Text>
-              <Card.Text> Bustepaga non presenti</Card.Text>
-              <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-            </Card.Body>
-          </Card>
+          <Col>
+            <p>
+              <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
+            </p>
+            <p>Buste paga non presenti</p>
+            <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+          </Col>
         )
       ) : lista && lista.length > 0 ? (
-        lista.map((dipendente) =>
-          dipendente.bustepaga.map((buste) => (
-            <Col key={buste.id} lg={4}>
-              <Card style={{ width: "16rem" }} className="p-3 m-4">
-                <Card.Text>
-                  <strong>Dipendente: </strong>
-                  {dipendente.nome} {dipendente.cognome}
-                </Card.Text>
-                <p>
-                  <strong>ID:</strong> {buste.id}
-                </p>
-                <p>
-                  <strong>Data:</strong> {buste.data}
-                </p>
-                <p>
-                  <strong>Importo Totale:</strong> {buste.importoTotale} €
-                </p>
-                <p>
-                  <strong>Ore Lavorate Extra:</strong> {buste.oreLavorateExtra} ore
-                </p>
-                <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-              </Card>
-            </Col>
-          ))
-        )
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Dipendente</th>
+              <th>BustaPaga ID</th>
+              <th>Data</th>
+              <th>Importo Totale</th>
+              <th>Ore Lavorate Extra</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map((dipendente) =>
+              dipendente.bustepaga.map((bustapaga) => (
+                <tr key={bustapaga.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{bustapaga.id}</td>
+                  <td>{bustapaga.data}</td>
+                  <td>{bustapaga.importoTotale} €</td>
+                  <td>{bustapaga.oreLavorateExtra} h</td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
       ) : (
         <h1>Nessun elemento trovato</h1>
       )}

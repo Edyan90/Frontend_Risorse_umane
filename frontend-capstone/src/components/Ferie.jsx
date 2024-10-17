@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setListaFerie } from "../redux/actions";
-import { Button, Card, Col, Row } from "react-bootstrap";
+import { Button, Col, Row, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 const Ferie = () => {
@@ -40,74 +40,87 @@ const Ferie = () => {
     <Row>
       {dipendente && dipendente.ruolo === "DIPENDENTE" ? (
         dipendente.ferie && dipendente.ferie.length > 0 ? (
-          dipendente.ferie.map((ferie) => (
-            <Col key={ferie.id}>
-              <Card style={{ width: "17rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <p>
-                    <strong>Ferie ID:</strong> {ferie.id}
-                  </p>
-                  <p>
-                    <strong>Data Inizio:</strong> {ferie.dataInizio}
-                  </p>
-                  <p>
-                    <strong>Data Fine:</strong> {ferie.dataFine}
-                  </p>
-                  <p>
-                    <strong>Ferie Maturate:</strong> {ferie.ferieMaturate} h
-                  </p>
-                  <p>
-                    <strong>Ferie Stato:</strong> {ferie.stato}
-                  </p>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Dipendente</th>
+                <th>Ferie ID</th>
+                <th>Data Inizio</th>
+                <th>Data Fine</th>
+                <th>Ferie Maturate</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dipendente.ferie.map((ferie) => (
+                <tr key={ferie.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{ferie.id}</td>
+                  <td>{ferie.dataInizio}</td>
+                  <td>{ferie.dataFine}</td>
+                  <td>{ferie.ferieMaturate} h</td>
+                  <td>{ferie.stato}</td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         ) : (
-          <Card>
-            <Card.Body>
-              <Card.Text>
-                <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-              </Card.Text>
-              <Card.Text> Non sono presenti ferie</Card.Text>
-              <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-            </Card.Body>
-          </Card>
+          <Col>
+            <p>
+              <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
+            </p>
+            <p>Non sono presenti ferie</p>
+            <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+          </Col>
         )
       ) : lista && lista.length > 0 ? (
-        lista.map((dipendente) =>
-          dipendente.ferie.map((ferie) => (
-            <Col key={ferie.id} lg={4}>
-              <Card style={{ width: "18rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <p>
-                    <strong>Ferie ID:</strong> {ferie.id}
-                  </p>
-                  <p>
-                    <strong>Data Inizio:</strong> {ferie.dataInizio}
-                  </p>
-                  <p>
-                    <strong>Data Fine:</strong> {ferie.dataFine}
-                  </p>
-                  <p>
-                    <strong>Ferie Maturate:</strong> {ferie.ferieMaturate} h
-                  </p>
-                  <p>
-                    <strong>Ferie Stato:</strong> {ferie.stato}
-                  </p>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
-        )
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Dipendente</th>
+              <th>Ferie ID</th>
+              <th>Data Inizio</th>
+              <th>Data Fine</th>
+              <th>Ferie Maturate</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map((dipendente) =>
+              dipendente.ferie.map((ferie) => (
+                <tr key={ferie.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{ferie.id}</td>
+                  <td>{ferie.dataInizio}</td>
+                  <td>{ferie.dataFine}</td>
+                  <td>{ferie.ferieMaturate} h</td>
+                  <td>{ferie.stato}</td>
+                  <td>
+                    {ferie.stato === "RICHIESTO" ? (
+                      <>
+                        <Button>Approva</Button>
+                        <Button className="btn-danger ms-2">Rifiuta</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button>Vedi profilo</Button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
       ) : (
         <h1>Nessun elemento trovato</h1>
       )}

@@ -7,7 +7,10 @@ const SideBar = ({ darkTheme }) => {
   const dipendente = useSelector((state) => state.dipendente.dipendente);
   const navigate = useNavigate();
   return (
-    <Container className={darkTheme ? " text-light border-end border-light " : " text-dark border-end "}>
+    <Container
+      className={darkTheme ? " text-light border-end border-light " : " text-dark border-end "}
+      style={{ minHeight: "87vh" }}
+    >
       <Row className="flex-column align-items-center ">
         <Col>
           <div className="d-flex justify-content-center align-items-center">
@@ -47,14 +50,7 @@ const SideBar = ({ darkTheme }) => {
             Profilo Personale
           </button>
         </Col>
-        <Col className="mt-2">
-          <button
-            className={darkTheme ? "button01  mt-5 bg-dark text-light" : "button01  mt-5 bg-light text-dark"}
-            onClick={() => navigate("/")}
-          >
-            Giustificazioni
-          </button>
-        </Col>
+
         <Col className="mt-2">
           <button
             className={darkTheme ? "button01  mt-5 bg-dark text-light" : "button01  mt-5 bg-light text-dark"}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { Button, Card, Col, Row } from "react-bootstrap";
+import { Button, Col, Row, Table } from "react-bootstrap";
 import { setListAssenze } from "../redux/actions";
 
 const Assenze = () => {
@@ -43,100 +43,90 @@ const Assenze = () => {
   return (
     <Row>
       {loading ? (
-        <Card>
-          <Card.Body>
-            <Card.Text>Caricamento...</Card.Text>
-          </Card.Body>
-        </Card>
+        <Col>
+          <p>Caricamento...</p>
+        </Col>
       ) : dipendente && dipendente.ruolo === "DIPENDENTE" ? (
         dipendente.assenze && dipendente.assenze.length > 0 ? (
-          dipendente.assenze.map((assenza) => (
-            <Col key={assenza.id}>
-              <Card style={{ width: "17rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente: </strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <p>
-                    <strong>Assenza ID: </strong> {assenza.id}
-                  </p>
-                  <p>
-                    <strong>Data: </strong> {assenza.data}
-                  </p>
-                  <p>
-                    <strong>Motivo: </strong> {assenza.motivo}
-                  </p>
-                  <p>
-                    <strong>Stato: </strong> {assenza.stato}
-                  </p>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Dipendente</th>
+                <th>Assenza ID</th>
+                <th>Data</th>
+                <th>Motivo</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dipendente.assenze.map((assenza) => (
+                <tr key={assenza.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{assenza.id}</td>
+                  <td>{assenza.data}</td>
+                  <td>{assenza.motivo}</td>
+                  <td>{assenza.stato}</td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         ) : (
-          <Card>
-            <Card.Body>
-              <Card.Text>
-                <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-              </Card.Text>
-              <Card.Text>Assenze non registrate!</Card.Text>
-              <Button onClick={() => navigate(`/home`)}>Torna alla Home</Button>
-            </Card.Body>
-          </Card>
+          <Col>
+            <p>Nessuna assenza registrata!</p>
+            <Button onClick={() => navigate("/home")}>Torna alla Home</Button>
+          </Col>
         )
       ) : lista && lista.length > 0 ? (
-        lista.map((dipendente) =>
-          dipendente.assenze.length > 0 ? (
-            dipendente.assenze.map((assenza) => (
-              <Col key={assenza.id} lg={4}>
-                <Card style={{ width: "18rem" }} className="p-3 m-4">
-                  <Card.Body>
-                    <Card.Text>
-                      <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                    </Card.Text>
-                    <p>
-                      <strong>Assenza ID: </strong> {assenza.id}
-                    </p>
-                    <p>
-                      <strong>Data: </strong> {assenza.data}
-                    </p>
-                    <p>
-                      <strong>Motivo: </strong> {assenza.motivo}
-                    </p>
-                    <p>
-                      <strong>Stato:</strong> {assenza.stato}
-                    </p>
-                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))
-          ) : (
-            <Col key={dipendente.id} lg={4}>
-              <Card style={{ width: "18rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <Card.Text>
-                    <strong>Nessuna assenza registrata</strong>
-                  </Card.Text>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          )
-        )
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Dipendente</th>
+              <th>Assenza ID</th>
+              <th>Data</th>
+              <th>Motivo</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map((dipendente) =>
+              dipendente.assenze.length > 0 ? (
+                dipendente.assenze.map((assenza) => (
+                  <tr key={assenza.id}>
+                    <td>
+                      {dipendente.nome} {dipendente.cognome}
+                    </td>
+                    <td>{assenza.id}</td>
+                    <td>{assenza.data}</td>
+                    <td>{assenza.motivo}</td>
+                    <td>{assenza.stato}</td>
+                    <td>
+                      <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Approva</Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr key={dipendente.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td colSpan="5">Nessuna assenza registrata</td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </Table>
       ) : (
-        <Card>
-          <Card.Body>
-            <Card.Text>
-              <strong>Nessuna assenza registrata</strong>
-            </Card.Text>
-            <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-          </Card.Body>
-        </Card>
+        <Col>
+          <p>Nessuna assenza registrata!</p>
+          <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+        </Col>
       )}
     </Row>
   );

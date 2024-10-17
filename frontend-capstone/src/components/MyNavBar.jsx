@@ -8,7 +8,7 @@ const MyNavBar = ({ darkTheme, toggleTheme }) => {
   return (
     <Navbar expand="lg" className=" navbar-dark border-bottom border-light">
       <Container>
-        <Navbar.Brand href="#home">
+        <Navbar.Brand href="/home">
           <img
             id="logoPortal"
             src="https://saas.hrzucchetti.it/hrpbestengsrl/images/login/logo.svg"

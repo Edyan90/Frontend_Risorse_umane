@@ -9,7 +9,7 @@ function Layout({ darkTheme }) {
   return (
     <>
       <MyNavBar />
-      <Row className="mt-5">
+      <Row className="mt-2">
         <Col lg={2}>
           <SideBar darkTheme={darkTheme} />
         </Col>

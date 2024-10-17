@@ -32,6 +32,7 @@ const Profile = () => {
     if (!isDIPENDENTE) {
       dipendenteFetch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dipendenteID]);
 
   return (

@@ -19,7 +19,7 @@ const DashBoard = ({ dipendente, darkTheme }) => {
   const [bustePaga] = useState({
     titolo: "Buste Paga",
     testo: "Lista BustePaga",
-    button: "Vedi le BustePaghe",
+    button: "Vedi BustePaghe",
     navigate: "bustepaga",
   });
   const [ferie] = useState({
@@ -41,38 +41,39 @@ const DashBoard = ({ dipendente, darkTheme }) => {
     navigate: `dipendenti/${dipendente.id}`,
   });
   const [giustificazione] = useState({
-    titolo: "Giustificazione",
-    testo: "crea giustificazione assenza",
+    titolo: "Filtri",
+    testo: "filtri per una ricerca più accurata",
     button: "Vai al form",
     navigate: "giustificazione",
   });
   return (
     <Container className="cards">
-      <Row className="justify-content-center m-5">
-        <Col lg={6}>
+      <h1 className="text-start text-black">Scegli una delle opzioni:</h1>
+      <Row className="justify-content-center my-3 gap-3">
+        <Col lg={3}>
           {dipendente.dipendente.ruolo === "DIPENDENTE" ? (
             <MyCard carte={profilo} darkTheme={darkTheme} />
           ) : (
             <MyCard carte={dipendenti} darkTheme={darkTheme} />
           )}
         </Col>
-        <Col lg={6}>
+        <Col lg={3}>
           <MyCard carte={assenze} darkTheme={darkTheme} />
         </Col>
-      </Row>
-      <Row className="justify-content-center m-5">
-        <Col lg={6}>
+        <Col lg={3}>
           <MyCard carte={bustePaga} darkTheme={darkTheme} />
         </Col>
-        <Col lg={6}>
+        <Col lg={3}>
           <MyCard carte={ferie} darkTheme={darkTheme} />
         </Col>
-      </Row>
-      <Row className="justify-content-center m-5">
-        <Col lg={6}>
+
+        <Col lg={3}>
           <MyCard carte={presenza} darkTheme={darkTheme} />
         </Col>
-        <Col lg={6}>
+      </Row>
+      <h1 className="text-start text-black mb-3">oppure vai alla sezione filtri:</h1>
+      <Row className="justify-content-center">
+        <Col lg={5}>
           <MyCard carte={giustificazione} darkTheme={darkTheme} />
         </Col>
       </Row>

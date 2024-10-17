@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setListPresenze } from "../redux/actions";
-import { Button, Card, Col, Row } from "react-bootstrap";
+import { Button, Table, Col, Row, Card } from "react-bootstrap";
 
 const Presenze = () => {
   const dipendente = useSelector((state) => state.dipendente.dipendente);
@@ -41,97 +41,113 @@ const Presenze = () => {
   return (
     <Row>
       {loading ? (
-        <Card>
-          <Card.Body>
-            <Card.Text>Caricamento...</Card.Text>
-          </Card.Body>
-        </Card>
+        <Col>
+          <Card>
+            <Card.Body>
+              <Card.Text>Caricamento...</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
       ) : dipendente && dipendente.ruolo === "DIPENDENTE" ? (
         dipendente.presenze && dipendente.presenze.length > 0 ? (
-          dipendente.presenze.map((presenza) => (
-            <Col key={presenza.id}>
-              <Card style={{ width: "17rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente: </strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <p>
-                    <strong>Presenza ID: </strong> {presenza.id}
-                  </p>
-                  <p>
-                    <strong>Data: </strong> {presenza.data}
-                  </p>
-                  <p>
-                    <strong>Presente: </strong> {presenza.presente}
-                  </p>
-                  <p>
-                    <strong>Stato: </strong> {presenza.stato}
-                  </p>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Dipendente</th>
+                <th>Presenza ID</th>
+                <th>Data</th>
+                <th>Presente</th>
+                <th>Stato Presenza</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dipendente.presenze.map((presenza) => (
+                <tr key={presenza.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td>{presenza.id}</td>
+                  <td>{presenza.data}</td>
+                  <td>{presenza.presente ? "Sì" : "No"}</td>
+                  <td>{presenza.statoPresenza}</td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         ) : (
+          <Col>
+            <Card>
+              <Card.Body>
+                <Card.Text>
+                  <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
+                </Card.Text>
+                <Card.Text>Presenze non registrate, se ritieni sia un errore contatta il tuo responsabile!</Card.Text>
+                <Button onClick={() => navigate(`/home`)}>Torna alla Home</Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        )
+      ) : lista && lista.length > 0 ? (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Dipendente</th>
+              <th>Presenza ID</th>
+              <th>Data</th>
+              <th>Presente</th>
+              <th>Stato Presenza</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map((dipendente) =>
+              dipendente.presenze.length > 0 ? (
+                dipendente.presenze.map((presenza) => (
+                  <tr key={presenza.id}>
+                    <td>
+                      {dipendente.nome} {dipendente.cognome}
+                    </td>
+                    <td>{presenza.id}</td>
+                    <td>{presenza.data}</td>
+                    <td>{presenza.stato ? "Assente" : "Presente"}</td>
+                    <td>{presenza.statoPresenza}</td>
+                    <td>
+                      <Button className="me-1">Approva</Button>
+                      <Button className="btn-danger">Rifiuta</Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr key={dipendente.id}>
+                  <td>
+                    {dipendente.nome} {dipendente.cognome}
+                  </td>
+                  <td colSpan="4">
+                    <strong>Nessuna Presenza registrata</strong>
+                  </td>
+                  <td>
+                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </Table>
+      ) : (
+        <Col>
           <Card>
             <Card.Body>
               <Card.Text>
-                <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
+                <strong>Nessuna Presenza registrata</strong>
               </Card.Text>
-              <Card.Text>Presenze non registrate, se ritieni sia un errore contatta il tuo responsabile!</Card.Text>
-              <Button onClick={() => navigate(`/home`)}>Torna alla Home</Button>
+              <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
             </Card.Body>
           </Card>
-        )
-      ) : lista && lista.length > 0 ? (
-        lista.map((dipendente) =>
-          dipendente.presenze.length > 0 ? (
-            dipendente.presenze.map((presenza) => (
-              <Col key={presenza.id} lg={4}>
-                <Card style={{ width: "18rem" }} className="p-3 m-4">
-                  <Card.Body>
-                    <Card.Text>
-                      <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                    </Card.Text>
-                    <p>
-                      <strong>Presenza ID: </strong> {presenza.id}
-                    </p>
-                    <p>
-                      <strong>Data: </strong> {presenza.data}
-                    </p>
-                    <p>
-                      <strong>Stato:</strong> {presenza.stato}
-                    </p>
-                    <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))
-          ) : (
-            <Col key={dipendente.id} lg={4}>
-              <Card style={{ width: "18rem" }} className="p-3 m-4">
-                <Card.Body>
-                  <Card.Text>
-                    <strong>Dipendente:</strong> {dipendente.nome} {dipendente.cognome}
-                  </Card.Text>
-                  <Card.Text>
-                    <strong>Nessuna Presenza registrata</strong>
-                  </Card.Text>
-                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          )
-        )
-      ) : (
-        <Card>
-          <Card.Body>
-            <Card.Text>
-              <strong>Nessuna Presenza registrata</strong>
-            </Card.Text>
-            <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Vedi profilo</Button>
-          </Card.Body>
-        </Card>
+        </Col>
       )}
     </Row>
   );
