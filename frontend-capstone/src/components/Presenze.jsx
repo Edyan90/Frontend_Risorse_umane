@@ -53,8 +53,7 @@ const Presenze = () => {
       }
       const ferieFiltrate = dipendente.presenze.filter((presenza) => {
         return (
-          (filtri.presenzaID === "" ||
-            presenza.id.toString().toLowerCase().includes(filtri.presenzaID.toLowerCase())) &&
+          (filtri.presenzaID === "" || presenza.id.toLowerCase().startsWith(filtri.presenzaID.toLowerCase())) &&
           (filtri.stato === "" || presenza.statoPresenza.toLowerCase().includes(filtri.stato.toLowerCase()))
         );
       });
@@ -154,7 +153,7 @@ const Presenze = () => {
                 <Form.Control
                   placeholder="@presenzaID"
                   type="text"
-                  name="ferieID"
+                  name="presenzaID"
                   value={filtri.presenzaID}
                   onChange={handleFilterChange}
                   className="custom-input"
