@@ -30,7 +30,6 @@ const Home = () => {
   };
   useEffect(() => {
     dipendenteFetch();
-    console.log(dipendente);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
