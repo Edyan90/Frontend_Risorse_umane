@@ -44,11 +44,14 @@ const DashBoard = ({ dipendente, darkTheme }) => {
     titolo: "Filtri",
     testo: "filtri per una ricerca più accurata",
     button: "Vai al form",
-    navigate: "giustificazione",
+    navigate: "filtri",
   });
   return (
     <Container className="cards">
-      <h1 className="text-start text-black">Scegli una delle opzioni:</h1>
+      <h1 className="text-start text-black">
+        Benvenuto {dipendente.dipendente.nome} {dipendente.dipendente.cognome}
+      </h1>
+      <h5 className="text-black text-start">Dashboard:</h5>
       <Row className="justify-content-center my-3 gap-3">
         <Col lg={3}>
           {dipendente.dipendente.ruolo === "DIPENDENTE" ? (
@@ -70,10 +73,7 @@ const DashBoard = ({ dipendente, darkTheme }) => {
         <Col lg={3}>
           <MyCard carte={presenza} darkTheme={darkTheme} />
         </Col>
-      </Row>
-      <h1 className="text-start text-black mb-3">oppure vai alla sezione filtri:</h1>
-      <Row className="justify-content-center">
-        <Col lg={5}>
+        <Col lg={3}>
           <MyCard carte={giustificazione} darkTheme={darkTheme} />
         </Col>
       </Row>
