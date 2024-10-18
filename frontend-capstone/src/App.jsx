@@ -12,6 +12,7 @@ import BustePaga from "./components/BustePaga";
 import Presenze from "./components/Presenze";
 import Assenze from "./components/Assenze";
 import Profile from "./components/Profile";
+import MyFiltri from "./components/MyFiltri";
 
 function App() {
   const darkTheme = useSelector((state) => state.theme.darkTheme);
@@ -28,6 +29,7 @@ function App() {
             <Route path="/presenze" element={<Presenze />} />
             <Route path="/assenze" element={<Assenze />} />
             <Route path="/dipendenti/:dipendenteID" element={<Profile />} />
+            <Route path="/filtri" element={<MyFiltri />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
