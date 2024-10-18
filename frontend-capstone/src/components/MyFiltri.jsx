@@ -18,6 +18,7 @@ const MyFiltri = () => {
     password: "",
     data: "", //dataInizio e dataAssunzione
     data2: "",
+    motivo: "",
   });
 
   const handleFilterChange = (e) => {
@@ -210,10 +211,10 @@ const MyFiltri = () => {
           </div>
         )
       )}
-      {filtri.endpoint === "assenze" && filtri.azione.length > 0 && (
+      {filtri.endpoint === "assenze" && (filtri.azione === "GET" || filtri.azione === "DELETE") ? (
         <div className="w-50">
           <Form.Group controlId="id">
-            <Form.Label>Assenza ID:</Form.Label>
+            <Form.Label>Ricerca per Assenza ID:</Form.Label>
             <Form.Control
               placeholder="@assenza ID"
               type="text"
@@ -224,7 +225,7 @@ const MyFiltri = () => {
             />
           </Form.Group>
           <Form.Group controlId="dipendenteID">
-            <Form.Label>Dipendente ID:</Form.Label>
+            <Form.Label>Ricerca per Dipendente ID:</Form.Label>
             <Form.Control
               placeholder="@dipendente ID"
               type="text"
@@ -235,7 +236,7 @@ const MyFiltri = () => {
             />
           </Form.Group>
           <Form.Group controlId="nome">
-            <Form.Label>Nome:</Form.Label>
+            <Form.Label>Ricerca per Nome:</Form.Label>
             <Form.Control
               placeholder="@nome dipendente"
               type="text"
@@ -246,7 +247,7 @@ const MyFiltri = () => {
             />
           </Form.Group>
           <Form.Group controlId="cognome">
-            <Form.Label>Cognome:</Form.Label>
+            <Form.Label>Ricerca per Cognome:</Form.Label>
             <Form.Control
               placeholder="@cognome dipendente"
               type="text"
@@ -257,7 +258,7 @@ const MyFiltri = () => {
             />
           </Form.Group>
           <Form.Group controlId="email">
-            <Form.Label>Email:</Form.Label>
+            <Form.Label>Ricerca per Email:</Form.Label>
             <Form.Control
               placeholder="@email dipendente"
               type="text"
@@ -268,7 +269,7 @@ const MyFiltri = () => {
             />
           </Form.Group>
           <Form.Group controlId="stato">
-            <Form.Label>Stato:</Form.Label>
+            <Form.Label>Ricerca per Stato:</Form.Label>
             <Form.Control
               as="select"
               name="stato"
@@ -282,8 +283,8 @@ const MyFiltri = () => {
               <option value="IN_ATTESA">IN ATTESA</option>
             </Form.Control>
           </Form.Group>
-          <Form.Group controlId="data">
-            <Form.Label>Data Inizio Ferie:</Form.Label>
+          <Form.Group controlId="dataInizio">
+            <Form.Label>Ricerca per Data Inizio Ferie...</Form.Label>
             <Form.Control
               type="date"
               name="data"
@@ -292,8 +293,8 @@ const MyFiltri = () => {
               className="custom-input"
             />
           </Form.Group>
-          <Form.Group controlId="data">
-            <Form.Label>Data Fine Ferie:</Form.Label>
+          <Form.Group controlId="dataFine">
+            <Form.Label>...e Data Fine Ferie:</Form.Label>
             <Form.Control
               type="date"
               name="data2"
@@ -303,6 +304,108 @@ const MyFiltri = () => {
             />
           </Form.Group>
         </div>
+      ) : (
+        filtri.endpoint === "assenze" && (
+          <div>
+            <Form.Group controlId="assenzaID">
+              <Form.Label>Ricerca per Assenza ID:</Form.Label>
+              <Form.Control
+                placeholder="@assenza ID"
+                type="text"
+                name="id"
+                value={filtri.id}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="dipendenteID">
+              <Form.Label>Ricerca dipendente per Dipendente ID:</Form.Label>
+              <Form.Control
+                placeholder="@dipendente ID"
+                type="text"
+                name="dipendenteID"
+                value={filtri.dipedenteID}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="nome">
+              <Form.Label>Ricerca dipendente per Nome:</Form.Label>
+              <Form.Control
+                placeholder="@nome dipendente"
+                type="text"
+                name="nome"
+                value={filtri.nome}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="cognome">
+              <Form.Label>Ricerca dipendente per Cognome:</Form.Label>
+              <Form.Control
+                placeholder="@cognome dipendente"
+                type="text"
+                name="cognome"
+                value={filtri.cognome}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="email">
+              <Form.Label>Ricerca dipendente per Email:</Form.Label>
+              <Form.Control
+                placeholder="@email dipendente"
+                type="text"
+                name="email"
+                value={filtri.email}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            {filtri.azione !== "PATCH" && (
+              <div>
+                <Form.Group controlId="data">
+                  <Form.Label>Inserisci data assenza:</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="data"
+                    value={filtri.data}
+                    onChange={handleFilterChange}
+                    className="custom-input"
+                  />
+                </Form.Group>
+                <Form.Group controlId="motivo">
+                  <Form.Label>Inserisci motivo:</Form.Label>
+                  <Form.Control
+                    placeholder="@motivo/giustificazione"
+                    type="text"
+                    name="motivo"
+                    value={filtri.motivo}
+                    onChange={handleFilterChange}
+                    className="custom-input"
+                  />
+                </Form.Group>
+              </div>
+            )}
+            {filtri.azione === "PATCH" && (
+              <Form.Group controlId="stato">
+                <Form.Label>Inserisci Stato:</Form.Label>
+                <Form.Control
+                  as="select"
+                  name="stato"
+                  value={filtri.stato}
+                  onChange={handleFilterChange}
+                  className="custom-input"
+                >
+                  <option value="">Seleziona Stato</option>
+                  <option value="APPROVATO">APPROVATO</option>
+                  <option value="NON_APPROVATA">NON APPROVATA</option>
+                  <option value="IN_ATTESA">IN ATTESA</option>
+                </Form.Control>
+              </Form.Group>
+            )}
+          </div>
+        )
       )}
       {filtri.endpoint === "presenze" && filtri.azione.length > 0 && (
         <div className="w-50">
@@ -398,100 +501,101 @@ const MyFiltri = () => {
           </Form.Group>
         </div>
       )}
-      {filtri.endpoint === "ferie" && filtri.azione.length > 0 && (
-        <div className="w-50">
-          <Form.Group controlId="id">
-            <Form.Label>Ferie ID:</Form.Label>
-            <Form.Control
-              placeholder="@ferie ID"
-              type="text"
-              name="id"
-              value={filtri.id}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="dipendenteID">
-            <Form.Label>Dipendente ID:</Form.Label>
-            <Form.Control
-              placeholder="@dipendente ID"
-              type="text"
-              name="dipendenteID"
-              value={filtri.nome}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="nome">
-            <Form.Label>Nome:</Form.Label>
-            <Form.Control
-              placeholder="@nome dipendente"
-              type="text"
-              name="nome"
-              value={filtri.nome}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="cognome">
-            <Form.Label>Cognome:</Form.Label>
-            <Form.Control
-              placeholder="@cognome dipendente"
-              type="text"
-              name="cognome"
-              value={filtri.cognome}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="email">
-            <Form.Label>Email:</Form.Label>
-            <Form.Control
-              placeholder="@email dipendente"
-              type="text"
-              name="email"
-              value={filtri.email}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="stato">
-            <Form.Label>Stato:</Form.Label>
-            <Form.Control
-              as="select"
-              name="stato"
-              value={filtri.stato}
-              onChange={handleFilterChange}
-              className="custom-input"
-            >
-              <option value="">Seleziona Stato</option>
-              <option value="APPROVATO">APPROVATO</option>
-              <option value="RIFIUTATO">RIFIUTATO</option>
-              <option value="RICHIESTO">RICHIESTO</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="data">
-            <Form.Label>Data Inizio Ferie:</Form.Label>
-            <Form.Control
-              type="date"
-              name="data"
-              value={filtri.data}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-          <Form.Group controlId="data">
-            <Form.Label>Data Fine Ferie:</Form.Label>
-            <Form.Control
-              type="date"
-              name="data2"
-              value={filtri.data2}
-              onChange={handleFilterChange}
-              className="custom-input"
-            />
-          </Form.Group>
-        </div>
-      )}
+      {filtri.endpoint === "ferie" &&
+        (filtri.azione === "GET" || filtri.azione === "DELETE" || filtri.azione === "PUT") && (
+          <div className="w-50">
+            <Form.Group controlId="id">
+              <Form.Label>Ferie ID:</Form.Label>
+              <Form.Control
+                placeholder="@ferie ID"
+                type="text"
+                name="id"
+                value={filtri.id}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="dipendenteID">
+              <Form.Label>Dipendente ID:</Form.Label>
+              <Form.Control
+                placeholder="@dipendente ID"
+                type="text"
+                name="dipendenteID"
+                value={filtri.nome}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="nome">
+              <Form.Label>Nome:</Form.Label>
+              <Form.Control
+                placeholder="@nome dipendente"
+                type="text"
+                name="nome"
+                value={filtri.nome}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="cognome">
+              <Form.Label>Cognome:</Form.Label>
+              <Form.Control
+                placeholder="@cognome dipendente"
+                type="text"
+                name="cognome"
+                value={filtri.cognome}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="email">
+              <Form.Label>Email:</Form.Label>
+              <Form.Control
+                placeholder="@email dipendente"
+                type="text"
+                name="email"
+                value={filtri.email}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="stato">
+              <Form.Label>Stato:</Form.Label>
+              <Form.Control
+                as="select"
+                name="stato"
+                value={filtri.stato}
+                onChange={handleFilterChange}
+                className="custom-input"
+              >
+                <option value="">Seleziona Stato</option>
+                <option value="APPROVATO">APPROVATO</option>
+                <option value="RIFIUTATO">RIFIUTATO</option>
+                <option value="RICHIESTO">RICHIESTO</option>
+              </Form.Control>
+            </Form.Group>
+            <Form.Group controlId="data">
+              <Form.Label>Data Inizio Ferie:</Form.Label>
+              <Form.Control
+                type="date"
+                name="data"
+                value={filtri.data}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Form.Group controlId="data">
+              <Form.Label>Data Fine Ferie:</Form.Label>
+              <Form.Control
+                type="date"
+                name="data2"
+                value={filtri.data2}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+          </div>
+        )}
     </Form>
   );
 };
