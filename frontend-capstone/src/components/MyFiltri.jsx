@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { Alert, Form } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Alert, Button, Card, Col, Form, Row } from "react-bootstrap";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const MyFiltri = () => {
   const dipendente = useSelector((state) => state.dipendente.dipendente);
+  const navigate = useNavigate();
+  const [listaCompleta, setListaCompleta] = useState([]);
+  const [search, setSearch] = useState({});
   const [filtri, setFiltri] = useState({
     endpoint: "",
     azione: "",
-    dipedenteID: "",
+    dipendenteID: "",
     id: "",
     nome: "",
     cognome: "",
@@ -20,14 +24,93 @@ const MyFiltri = () => {
     data2: "",
     motivo: "",
     boolean: false,
+    importoTotale: 0,
+    ore: 0,
+    nomeCRUD: "",
+    cognomeCRUD: "",
+    emailCRUD: "",
   });
+  const [cardSelezionata, setCardSelezionata] = useState(null);
+
+  const selezionato = (id) => {
+    setCardSelezionata(id);
+    setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: id }));
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    // eslint-disable-next-line no-unused-vars
-    const parsedValue = value === "true" ? true : value === "false" ? false : value;
-    setFiltri((prev) => ({ ...prev, [name]: value }));
+    let parsedValue = value;
+    if (name === "boolean") {
+      parsedValue = value === "true" ? true : value === "false" ? false : value;
+    } else if (["importoTotale", "ore"].includes(name)) {
+      parsedValue = Number(value);
+    }
+    setFiltri((prev) => ({ ...prev, [name]: parsedValue }));
   };
+
+  const listaDipendenti = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch("http://localhost:3001/dipendenti", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch lista-dipendenti!");
+      }
+      const data = await resp.json();
+      console.log("Dati ricevuti:", data);
+
+      setListaCompleta(data.content);
+    } catch (error) {
+      console.error("Errore nella fetch lista-dipendenti!", error);
+    }
+  };
+  const searchDipendenteDB = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(`http://localhost:3001/dipendenti/${filtri.dipendenteID}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch search-dipendente!");
+      }
+      const data = await resp.json();
+      console.log("Dati ricevuti dal search:", data);
+
+      setSearch(data);
+    } catch (error) {
+      console.error("Errore nella fetch lista-dipendenti!", error);
+    }
+  };
+
+  const filtraDipendenti = () => {
+    return listaCompleta.filter((dipendente) => {
+      return (
+        (filtri.nome === "" || dipendente.nome.toLowerCase().includes(filtri.nome.toLowerCase())) &&
+        (filtri.cognome === "" || dipendente.cognome.toLowerCase().includes(filtri.cognome.toLowerCase())) &&
+        (filtri.email === "" || dipendente.email.toLowerCase().includes(filtri.email.toLowerCase()))
+      );
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    searchDipendenteDB();
+  };
+  const dipendentiFiltrati = filtraDipendenti();
+  useEffect(() => {
+    listaDipendenti();
+  }, []);
+  useEffect(() => {
+    console.log(search);
+    console.log(filtri.dipendenteID);
+  }, [filtri.dipendenteID]);
 
   return (
     <div>
@@ -38,7 +121,7 @@ const MyFiltri = () => {
       {/*  -------------------------------------------------ARGOMENTO--------------------------------------------
       -------------------------------------------------------------------------------------------------------
       ------------------------------------------------------------------------------------------------------- */}
-      <Form className="text-start text-black">
+      <Form className="text-start text-black" onSubmit={handleSubmit}>
         <Form.Group controlId="endpoint" className="mb-4  w-25">
           <Form.Label>Seleziona l&apos;argomento</Form.Label>
           <Form.Control
@@ -80,19 +163,26 @@ const MyFiltri = () => {
         </Form.Group>
         {filtri.endpoint === "dipendenti" && (filtri.azione === "GET" || filtri.azione === "DELETE") ? (
           <>
+            {/*  -------------------------------------------------DIPENDENTI--------------------------------------------
+            -------------------------------------------------------------------------------------------------------
+            ------------------------------------------------------------------------------------------------------- */}
             <h6>Inserisci i parametri di ricerca:</h6>
+            <Form.Group controlId="dipendenteID" className="w-50">
+              <Form.Label>Dipendente ID:</Form.Label>
+              <Form.Control
+                placeholder="@dipendenteID"
+                type="text"
+                name="dipendenteID"
+                value={filtri.dipendenteID}
+                onChange={handleFilterChange}
+                className="custom-input"
+              />
+            </Form.Group>
+            <Button type="submit" className="mt-2">
+              Invia
+            </Button>
+            <h6 className="mt-4">Oppure per nomenclatura</h6>
             <div className="d-flex gap-3">
-              <Form.Group controlId="id">
-                <Form.Label>Dipendente ID:</Form.Label>
-                <Form.Control
-                  placeholder="@dipendente ID"
-                  type="text"
-                  name="dipendenteID"
-                  value={filtri.dipedenteID}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
               <Form.Group controlId="nome">
                 <Form.Label>Nome:</Form.Label>
                 <Form.Control
@@ -127,29 +217,65 @@ const MyFiltri = () => {
                 />
               </Form.Group>
             </div>
+            {search.id ? (
+              <div className="bg-light rounded mt-5 w-50">
+                <h4>Dipendente trovato:</h4>
+                <div>
+                  <h6>
+                    {search.nome} {search.cognome}
+                  </h6>
+                  <p>ID: {search.id}</p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Row>
+                  {(filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) &&
+                  dipendentiFiltrati.length > 0
+                    ? dipendentiFiltrati.map((dipendente) => (
+                        <Col key={dipendente.id} lg={4}>
+                          <Card style={{ width: "15rem" }} className="p-4 m-3">
+                            <Card.Img variant="top" src={`${dipendente.avatar}`} />
+                            <Card.Body>
+                              <Card.Title>{`${dipendente.nome} ${dipendente.cognome}`}</Card.Title>
+                              <Card.Text>Ruolo: {`${dipendente.ruolo}`}</Card.Text>
+                              <Button variant="primary" onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>
+                                Visita profilo
+                              </Button>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      ))
+                    : (filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) && (
+                        <h1>Nessun dipendente trovato.</h1>
+                      )}
+                </Row>
+              </div>
+            )}
           </>
         ) : (
           filtri.endpoint === "dipendenti" &&
           (filtri.azione === "PUT" || filtri.azione === "POST" || filtri.azione === "PATCH") && (
             <div>
-              {/*  -------------------------------------------------DIPENDENTI--------------------------------------------
-      -------------------------------------------------------------------------------------------------------
-      ------------------------------------------------------------------------------------------------------- */}
               {filtri.azione === "PUT" && (
-                <div>
-                  <h6>Cerca dipendente da modificare per:</h6>
-                  <div className="d-flex gap-2">
-                    <Form.Group controlId="id">
-                      <Form.Label>ID:</Form.Label>
-                      <Form.Control
-                        placeholder="@DipendenteID"
-                        type="text"
-                        name="nome"
-                        value={filtri.nome}
-                        onChange={handleFilterChange}
-                        className="custom-input"
-                      />
-                    </Form.Group>
+                <>
+                  <h6>Inserisci i parametri di ricerca:</h6>
+                  <Form.Group controlId="dipendenteID" className="w-50">
+                    <Form.Label>Dipendente ID:</Form.Label>
+                    <Form.Control
+                      placeholder="@dipendenteID"
+                      type="text"
+                      name="dipendenteID"
+                      value={filtri.dipendenteID}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                    />
+                  </Form.Group>
+                  <Button type="submit" className="mt-2">
+                    Invia
+                  </Button>
+                  <h6 className="mt-4">Oppure per nomenclatura</h6>
+                  <div className="d-flex gap-3">
                     <Form.Group controlId="nome">
                       <Form.Label>Nome:</Form.Label>
                       <Form.Control
@@ -184,101 +310,256 @@ const MyFiltri = () => {
                       />
                     </Form.Group>
                   </div>
+                  {search.id ? (
+                    <div className="bg-light rounded mt-5 w-50">
+                      <h4>Dipendente trovato:</h4>
+                      <div>
+                        <h6>
+                          {search.nome} {search.cognome}
+                        </h6>
+                        <p>ID: {search.id}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <Row>
+                        {(filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) &&
+                        dipendentiFiltrati.length > 0
+                          ? dipendentiFiltrati.map((dipendente) => (
+                              <Col key={dipendente.id} lg={4}>
+                                <Card style={{ width: "15rem" }} className="p-4 m-3">
+                                  <Card.Img variant="top" src={`${dipendente.avatar}`} />
+                                  <Card.Body>
+                                    <Card.Title>{`${dipendente.nome} ${dipendente.cognome}`}</Card.Title>
+                                    <Card.Text>Ruolo: {`${dipendente.ruolo}`}</Card.Text>
+                                    <Button variant="primary" onClick={() => selezionato(dipendente.id)}>
+                                      Seleziona dipendente
+                                    </Button>
+                                  </Card.Body>
+                                </Card>
+                              </Col>
+                            ))
+                          : (filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) && (
+                              <h1>Nessun dipendente trovato.</h1>
+                            )}
+                      </Row>
+                    </div>
+                  )}
+                </>
+              )}
+              {filtri.dipendenteID.length > 0 && (
+                <div>
+                  <h6 className="mt-5">Crea nuovo dipendente o modifica il dipendente trovato:</h6>
+                  <Form.Group controlId="nomeCRUD">
+                    <Form.Label>Inserisci Nome:</Form.Label>
+                    <Form.Control
+                      placeholder="@nome dipendente"
+                      type="text"
+                      name="nomeCRUD"
+                      value={filtri.nomeCRUD}
+                      onChange={handleFilterChange}
+                      required
+                      className="custom-input"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="cognomeCRUD">
+                    <Form.Label>Inserisci Cognome:</Form.Label>
+                    <Form.Control
+                      placeholder="@cognome dipendente"
+                      type="text"
+                      name="cognomeCRUD"
+                      value={filtri.cognomeCRUD}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="emailCRUD">
+                    <Form.Label>Inserisci Email:</Form.Label>
+                    <Form.Control
+                      placeholder="@email dipendente"
+                      type="text"
+                      name="email"
+                      value={filtri.emailCRUD}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="statoCRUD">
+                    <Form.Label>Aggiungi Ruolo:</Form.Label>
+                    <Form.Control
+                      as="select"
+                      name="stato"
+                      value={filtri.stato}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    >
+                      <option value="">Seleziona Ruolo</option>
+                      <option value="DIPENDENTE">DIPENDENTE</option>
+                      <option value="MANAGER">MANAGER</option>
+                      {dipendente.ruolo === "ADMIN" && <option value="ADMIN">ADMIN</option>}
+                    </Form.Control>
+                  </Form.Group>
+                  <Form.Group controlId="username">
+                    <Form.Label>Inserisci Username:</Form.Label>
+                    <Form.Control
+                      placeholder="@username dipendente"
+                      type="text"
+                      name="username"
+                      value={filtri.username}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="stipendio">
+                    <Form.Label>Inserisci stipendio:</Form.Label>
+                    <Form.Control
+                      placeholder="@stipendio dipendente"
+                      type="number"
+                      name="stipendio"
+                      step="0.01"
+                      value={filtri.stipendio}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="password">
+                    <Form.Label>Inserisci password:</Form.Label>
+                    <Form.Control
+                      placeholder="@password dipendente"
+                      type="password"
+                      name="password"
+                      value={filtri.password}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="data">
+                    <Form.Label>Data Assunzione:</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="data"
+                      value={filtri.data}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Button>Submit</Button>
                 </div>
               )}
-              <h6 className="mt-5">Crea nuovo dipendente o modifica il dipendente trovato:</h6>
-              <Form.Group controlId="nome">
-                <Form.Label>Inserisci Nome:</Form.Label>
-                <Form.Control
-                  placeholder="@nome dipendente"
-                  type="text"
-                  name="nome"
-                  value={filtri.nome}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="cognome">
-                <Form.Label>Inserisci Cognome:</Form.Label>
-                <Form.Control
-                  placeholder="@cognome dipendente"
-                  type="text"
-                  name="cognome"
-                  value={filtri.cognome}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="email">
-                <Form.Label>Inserisci Email:</Form.Label>
-                <Form.Control
-                  placeholder="@email dipendente"
-                  type="text"
-                  name="email"
-                  value={filtri.email}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="stato">
-                <Form.Label>Aggiungi Ruolo:</Form.Label>
-                <Form.Control
-                  as="select"
-                  name="stato"
-                  value={filtri.stato}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                >
-                  <option value="">Seleziona Ruolo</option>
-                  <option value="DIPENDENTE">DIPENDENTE</option>
-                  <option value="MANAGER">MANAGER</option>
-                  {dipendente.ruolo === "ADMIN" && <option value="ADMIN">ADMIN</option>}
-                </Form.Control>
-              </Form.Group>
-              <Form.Group controlId="username">
-                <Form.Label>Inserisci Username:</Form.Label>
-                <Form.Control
-                  placeholder="@username dipendente"
-                  type="text"
-                  name="username"
-                  value={filtri.username}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="stipendio">
-                <Form.Label>Inserisci stipendio:</Form.Label>
-                <Form.Control
-                  placeholder="@stipendio dipendente"
-                  type="number"
-                  name="stipendio"
-                  step="0.01"
-                  value={filtri.stipendio}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="password">
-                <Form.Label>Inserisci password:</Form.Label>
-                <Form.Control
-                  placeholder="@password dipendente"
-                  type="password"
-                  name="password"
-                  value={filtri.password}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
-              <Form.Group controlId="data">
-                <Form.Label>Data Assunzione:</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="data"
-                  value={filtri.data}
-                  onChange={handleFilterChange}
-                  className="custom-input"
-                />
-              </Form.Group>
+              {filtri.azione === "POST" && (
+                <div>
+                  {" "}
+                  <h6 className="mt-5">Crea nuovo dipendente o modifica il dipendente trovato:</h6>
+                  <Form.Group controlId="nomeCRUD">
+                    <Form.Label>Inserisci Nome:</Form.Label>
+                    <Form.Control
+                      placeholder="@nome dipendente"
+                      type="text"
+                      name="nomeCRUD"
+                      value={filtri.nomeCRUD}
+                      onChange={handleFilterChange}
+                      required
+                      className="custom-input"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="cognomeCRUD">
+                    <Form.Label>Inserisci Cognome:</Form.Label>
+                    <Form.Control
+                      placeholder="@cognome dipendente"
+                      type="text"
+                      name="cognomeCRUD"
+                      value={filtri.cognomeCRUD}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="emailCRUD">
+                    <Form.Label>Inserisci Email:</Form.Label>
+                    <Form.Control
+                      placeholder="@email dipendente"
+                      type="text"
+                      name="email"
+                      value={filtri.emailCRUD}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="statoCRUD">
+                    <Form.Label>Aggiungi Ruolo:</Form.Label>
+                    <Form.Control
+                      as="select"
+                      name="stato"
+                      value={filtri.stato}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    >
+                      <option value="">Seleziona Ruolo</option>
+                      <option value="DIPENDENTE">DIPENDENTE</option>
+                      <option value="MANAGER">MANAGER</option>
+                      {dipendente.ruolo === "ADMIN" && <option value="ADMIN">ADMIN</option>}
+                    </Form.Control>
+                  </Form.Group>
+                  <Form.Group controlId="username">
+                    <Form.Label>Inserisci Username:</Form.Label>
+                    <Form.Control
+                      placeholder="@username dipendente"
+                      type="text"
+                      name="username"
+                      value={filtri.username}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="stipendio">
+                    <Form.Label>Inserisci stipendio:</Form.Label>
+                    <Form.Control
+                      placeholder="@stipendio dipendente"
+                      type="number"
+                      name="stipendio"
+                      step="0.01"
+                      value={filtri.stipendio}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="password">
+                    <Form.Label>Inserisci password:</Form.Label>
+                    <Form.Control
+                      placeholder="@password dipendente"
+                      type="password"
+                      name="password"
+                      value={filtri.password}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="data">
+                    <Form.Label>Data Assunzione:</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="data"
+                      value={filtri.data}
+                      onChange={handleFilterChange}
+                      className="custom-input"
+                      required
+                    />
+                  </Form.Group>
+                  <Button>Submit</Button>
+                </div>
+              )}
             </div>
           )
         )}
@@ -304,7 +585,7 @@ const MyFiltri = () => {
                 placeholder="@dipendente ID"
                 type="text"
                 name="dipendenteID"
-                value={filtri.dipedenteID}
+                value={filtri.dipendenteID}
                 onChange={handleFilterChange}
                 className="custom-input"
               />
@@ -401,7 +682,7 @@ const MyFiltri = () => {
                       placeholder="@dipendente ID"
                       type="text"
                       name="dipendenteID"
-                      value={filtri.dipedenteID}
+                      value={filtri.dipendenteID}
                       onChange={handleFilterChange}
                       className="custom-input"
                     />
@@ -448,6 +729,7 @@ const MyFiltri = () => {
                       value={filtri.data}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="motivo">
@@ -459,6 +741,7 @@ const MyFiltri = () => {
                       value={filtri.motivo}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     />
                   </Form.Group>
                 </div>
@@ -472,7 +755,7 @@ const MyFiltri = () => {
                       placeholder="@dipendente ID"
                       type="text"
                       name="dipendenteID"
-                      value={filtri.dipedenteID}
+                      value={filtri.dipendenteID}
                       onChange={handleFilterChange}
                       className="custom-input"
                     />
@@ -519,6 +802,7 @@ const MyFiltri = () => {
                       value={filtri.data}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="motivo">
@@ -530,6 +814,7 @@ const MyFiltri = () => {
                       value={filtri.motivo}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     />
                   </Form.Group>
                 </div>
@@ -543,6 +828,7 @@ const MyFiltri = () => {
                     value={filtri.stato}
                     onChange={handleFilterChange}
                     className="custom-input"
+                    required
                   >
                     <option value="">Seleziona Stato</option>
                     <option value="APPROVATO">APPROVATO</option>
@@ -663,7 +949,7 @@ const MyFiltri = () => {
                       placeholder="@dipendente ID"
                       type="text"
                       name="dipendenteID"
-                      value={filtri.dipedenteID}
+                      value={filtri.dipendenteID}
                       onChange={handleFilterChange}
                       className="custom-input"
                     />
@@ -736,7 +1022,7 @@ const MyFiltri = () => {
                       placeholder="@dipendente ID"
                       type="text"
                       name="dipendenteID"
-                      value={filtri.dipedenteID}
+                      value={filtri.dipendenteID}
                       onChange={handleFilterChange}
                       className="custom-input"
                     />
@@ -783,6 +1069,7 @@ const MyFiltri = () => {
                       value={filtri.data}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="boolean">
@@ -793,6 +1080,7 @@ const MyFiltri = () => {
                       value={filtri.boolean}
                       onChange={handleFilterChange}
                       className="custom-input"
+                      required
                     >
                       <option value="">Seleziona Stato</option>
                       <option value="true">SI</option>
@@ -810,6 +1098,7 @@ const MyFiltri = () => {
                     value={filtri.stato}
                     onChange={handleFilterChange}
                     className="custom-input"
+                    required
                   >
                     <option value="">Seleziona Stato</option>
                     <option value="APPROVATO">APPROVATO</option>
