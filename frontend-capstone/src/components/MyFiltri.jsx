@@ -8,6 +8,10 @@ const MyFiltri = () => {
   const navigate = useNavigate();
   const [listaCompleta, setListaCompleta] = useState([]);
   const [search, setSearch] = useState({});
+  const [showForm, setShowForm] = useState(false);
+  const [messaggio, setMessaggio] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [toogle, setToogle] = useState(false);
   const [filtri, setFiltri] = useState({
     endpoint: "",
     azione: "",
@@ -33,8 +37,17 @@ const MyFiltri = () => {
   const [cardSelezionata, setCardSelezionata] = useState(null);
 
   const selezionato = (id) => {
-    setCardSelezionata(id);
-    setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: id }));
+    if (!toogle) {
+      setCardSelezionata(id);
+      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: id }));
+      setShowForm(true);
+      setToogle(true);
+    } else {
+      setCardSelezionata(null);
+      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: "" }));
+      setShowForm(false);
+      setToogle(false);
+    }
   };
 
   const handleFilterChange = (e) => {
@@ -78,13 +91,15 @@ const MyFiltri = () => {
         },
       });
       if (!resp.ok) {
-        throw new Error("Errore nella fetch search-dipendente!");
+        const errorResponse = await resp.json();
+        throw new Error(errorResponse.message || "Errore nella fetch search-dipendente!");
       }
       const data = await resp.json();
       console.log("Dati ricevuti dal search:", data);
 
       setSearch(data);
     } catch (error) {
+      alert(error);
       console.error("Errore nella fetch lista-dipendenti!", error);
     }
   };
@@ -98,10 +113,123 @@ const MyFiltri = () => {
       );
     });
   };
+  const creaEditDipendente = async () => {
+    try {
+      const dipendenteData = {};
+      if (filtri.dipendenteID) {
+        dipendenteData.dipendenteID = filtri.dipendenteID;
+      }
+      if (filtri.nomeCRUD) {
+        dipendenteData.nome = filtri.nomeCRUD;
+      }
 
+      if (filtri.cognomeCRUD) {
+        dipendenteData.cognome = filtri.cognomeCRUD;
+      }
+
+      if (filtri.emailCRUD) {
+        dipendenteData.email = filtri.emailCRUD;
+      }
+
+      if (filtri.stato) {
+        dipendenteData.ruolo = filtri.stato;
+      }
+
+      if (filtri.username) {
+        dipendenteData.username = filtri.username;
+      }
+
+      if (filtri.stipendio) {
+        dipendenteData.stipendio = parseFloat(filtri.stipendio);
+      }
+
+      if (filtri.password) {
+        dipendenteData.password = filtri.password;
+      }
+
+      if (filtri.data) {
+        dipendenteData.dataAssunzione = filtri.data;
+      }
+      const token = localStorage.getItem("token");
+
+      let URL;
+      switch (filtri.azione) {
+        case "POST":
+          URL = `http://localhost:3001/${filtri.endpoint}`;
+          break;
+        case "DELETE":
+          URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+          break;
+
+        case "PUT":
+          URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+          break;
+        case "GET":
+          URL = `http://localhost:3001/${filtri.endpoint}`;
+          break;
+        default:
+          throw new Error("Definisci il metodo di invio del payload");
+      }
+
+      const options = {
+        method: filtri.azione,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      };
+      if (filtri.azione === "POST" || filtri.azione === "DELETE" || filtri.azione == "PUT") {
+        options.body = JSON.stringify(dipendenteData);
+      }
+
+      const resp = await fetch(URL, options);
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch creazione dipendenti!");
+      }
+      const result = await resp.json();
+      console.log("Dipendente creato con successo:", result);
+      setMessaggio("Dipendente creato/aggiornato con successo!");
+      setShowModal(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: "" }));
+    } catch (error) {
+      console.error("Errore di connessione:", error);
+    }
+  };
   const handleSubmit = (e) => {
-    e.preventDefault();
-    searchDipendenteDB();
+    if (filtri.endpoint === "dipendenti" && filtri.azione === "GET") {
+      e.preventDefault();
+      searchDipendenteDB();
+      setShowForm(true);
+    } else if (filtri.endpoint === "dipendenti" && filtri.azione === "PUT" && filtri.dipendenteID.length > 0) {
+      e.preventDefault();
+      searchDipendenteDB();
+      setShowForm(true);
+      if (
+        filtri.nomeCRUD ||
+        filtri.cognomeCRUD ||
+        filtri.email ||
+        filtri.stato ||
+        filtri.username ||
+        filtri.stipendio ||
+        filtri.password ||
+        filtri.data
+      ) {
+        creaEditDipendente();
+      }
+    } else if (filtri.endpoint === "dipendenti" && (filtri.azione === "PUT" || filtri.azione === "POST")) {
+      e.preventDefault();
+      creaEditDipendente();
+    } else if (filtri.endpoint === "dipendenti" && filtri.azione === "DELETE") {
+      e.preventDefault();
+      creaEditDipendente();
+    }
+  };
+  const cleaner = () => {
+    setFiltri((state) => ({ ...state, dipendenteID: "" }));
+    setSearch({});
   };
   const dipendentiFiltrati = filtraDipendenti();
   useEffect(() => {
@@ -217,14 +345,17 @@ const MyFiltri = () => {
                 />
               </Form.Group>
             </div>
-            {search.id ? (
-              <div className="bg-light rounded mt-5 w-50">
+            {search.id && filtri.dipendenteID ? (
+              <div className="p-4 bg-light rounded mt-5 w-50">
                 <h4>Dipendente trovato:</h4>
                 <div>
                   <h6>
                     {search.nome} {search.cognome}
                   </h6>
                   <p>ID: {search.id}</p>
+                  <Button className="m-2" onClick={cleaner}>
+                    Nuova ricerca
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -234,16 +365,41 @@ const MyFiltri = () => {
                   dipendentiFiltrati.length > 0
                     ? dipendentiFiltrati.map((dipendente) => (
                         <Col key={dipendente.id} lg={4}>
-                          <Card style={{ width: "15rem" }} className="p-4 m-3">
+                          <Card
+                            style={{ width: "15rem" }}
+                            className={`m-3 p-3 ${cardSelezionata === dipendente.id ? "border-danger border-4" : ""}`}
+                          >
                             <Card.Img variant="top" src={`${dipendente.avatar}`} />
                             <Card.Body>
                               <Card.Title>{`${dipendente.nome} ${dipendente.cognome}`}</Card.Title>
                               <Card.Text>Ruolo: {`${dipendente.ruolo}`}</Card.Text>
-                              <Button variant="primary" onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>
-                                Visita profilo
-                              </Button>
+                              {filtri.azione === "GET" ? (
+                                <Button variant="primary" onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>
+                                  Visita profilo
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant={cardSelezionata === dipendente.id ? "warning" : "primary"}
+                                  onClick={() => selezionato(dipendente.id)}
+                                >
+                                  {toogle && cardSelezionata === dipendente.id
+                                    ? "Deseleziona dipendente"
+                                    : "Seleziona dipendente"}
+                                </Button>
+                              )}
                             </Card.Body>
                           </Card>
+                          {showForm && cardSelezionata === dipendente.id && (
+                            <div>
+                              <Alert>
+                                ELIMINANDO IL DIPENDENTE SI PERDERANNO DATI ANCHE DELLE SUE BUSTEPAGHE, PRESENZE,
+                                ASSENZE, e FERIE
+                              </Alert>
+                              <Button type="submit" variant="danger" className="text-start ms-5" onClick={handleSubmit}>
+                                Elimina Dipendente
+                              </Button>
+                            </div>
+                          )}
                         </Col>
                       ))
                     : (filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) && (
@@ -327,13 +483,23 @@ const MyFiltri = () => {
                         dipendentiFiltrati.length > 0
                           ? dipendentiFiltrati.map((dipendente) => (
                               <Col key={dipendente.id} lg={4}>
-                                <Card style={{ width: "15rem" }} className="p-4 m-3">
+                                <Card
+                                  style={{ width: "15rem" }}
+                                  className={`m-3 p-3 ${
+                                    cardSelezionata === dipendente.id ? "border-danger border-4" : ""
+                                  }`}
+                                >
                                   <Card.Img variant="top" src={`${dipendente.avatar}`} />
                                   <Card.Body>
                                     <Card.Title>{`${dipendente.nome} ${dipendente.cognome}`}</Card.Title>
                                     <Card.Text>Ruolo: {`${dipendente.ruolo}`}</Card.Text>
-                                    <Button variant="primary" onClick={() => selezionato(dipendente.id)}>
-                                      Seleziona dipendente
+                                    <Button
+                                      variant={cardSelezionata === dipendente.id ? "warning" : "primary"}
+                                      onClick={() => selezionato(dipendente.id)}
+                                    >
+                                      {toogle && cardSelezionata === dipendente.id
+                                        ? "Deseleziona dipendente"
+                                        : "Seleziona dipendente"}
                                     </Button>
                                   </Card.Body>
                                 </Card>
@@ -347,9 +513,13 @@ const MyFiltri = () => {
                   )}
                 </>
               )}
-              {filtri.dipendenteID.length > 0 && (
+              {showForm && filtri.dipendenteID.length > 0 && (
                 <div>
                   <h6 className="mt-5">Crea nuovo dipendente o modifica il dipendente trovato:</h6>
+                  <Alert variant="danger">
+                    SOLO NEL CASO DI MODIFICA: se lasci il campo vuoto questo non verrà modificato da quello già
+                    esistente
+                  </Alert>
                   <Form.Group controlId="nomeCRUD">
                     <Form.Label>Inserisci Nome:</Form.Label>
                     <Form.Control
@@ -358,7 +528,6 @@ const MyFiltri = () => {
                       name="nomeCRUD"
                       value={filtri.nomeCRUD}
                       onChange={handleFilterChange}
-                      required
                       className="custom-input"
                     />
                   </Form.Group>
@@ -371,7 +540,6 @@ const MyFiltri = () => {
                       value={filtri.cognomeCRUD}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="emailCRUD">
@@ -383,7 +551,6 @@ const MyFiltri = () => {
                       value={filtri.emailCRUD}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="statoCRUD">
@@ -394,7 +561,6 @@ const MyFiltri = () => {
                       value={filtri.stato}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     >
                       <option value="">Seleziona Ruolo</option>
                       <option value="DIPENDENTE">DIPENDENTE</option>
@@ -411,7 +577,6 @@ const MyFiltri = () => {
                       value={filtri.username}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="stipendio">
@@ -421,10 +586,10 @@ const MyFiltri = () => {
                       type="number"
                       name="stipendio"
                       step="0.01"
+                      min="0"
                       value={filtri.stipendio}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="password">
@@ -436,7 +601,6 @@ const MyFiltri = () => {
                       value={filtri.password}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
                   <Form.Group controlId="data">
@@ -447,15 +611,44 @@ const MyFiltri = () => {
                       value={filtri.data}
                       onChange={handleFilterChange}
                       className="custom-input"
-                      required
                     />
                   </Form.Group>
-                  <Button>Submit</Button>
+                  <Button type="submit" className="mt-3">
+                    Submit
+                  </Button>
+                  {messaggio && (
+                    <div>
+                      <div
+                        className={`modal fade ${showModal ? "show" : ""}`}
+                        style={{ display: showModal ? "block" : "none" }}
+                        tabIndex="-1"
+                        role="dialog"
+                        aria-labelledby="exampleModalLabel"
+                        aria-hidden={!showModal}
+                      >
+                        <div className="modal-dialog" role="document">
+                          <div className="modal-content">
+                            <div className="modal-header">
+                              <h5 className="modal-title" id="exampleModalLabel">
+                                Messaggio
+                              </h5>
+                            </div>
+                            <div className="modal-body">{messaggio}</div>
+                            <div className="modal-footer">
+                              <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                Chiudi
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {showModal && <div className="modal-backdrop fade show"></div>}
+                    </div>
+                  )}
                 </div>
               )}
               {filtri.azione === "POST" && (
                 <div>
-                  {" "}
                   <h6 className="mt-5">Crea nuovo dipendente o modifica il dipendente trovato:</h6>
                   <Form.Group controlId="nomeCRUD">
                     <Form.Label>Inserisci Nome:</Form.Label>
@@ -486,7 +679,7 @@ const MyFiltri = () => {
                     <Form.Control
                       placeholder="@email dipendente"
                       type="text"
-                      name="email"
+                      name="emailCRUD"
                       value={filtri.emailCRUD}
                       onChange={handleFilterChange}
                       className="custom-input"
@@ -528,6 +721,7 @@ const MyFiltri = () => {
                       type="number"
                       name="stipendio"
                       step="0.01"
+                      min="0"
                       value={filtri.stipendio}
                       onChange={handleFilterChange}
                       className="custom-input"
@@ -557,7 +751,38 @@ const MyFiltri = () => {
                       required
                     />
                   </Form.Group>
-                  <Button>Submit</Button>
+                  <Button type="submit" className="mt-3">
+                    Submit
+                  </Button>
+                  {messaggio && (
+                    <div>
+                      <div
+                        className={`modal fade ${showModal ? "show" : ""}`}
+                        style={{ display: showModal ? "block" : "none" }}
+                        tabIndex="-1"
+                        role="dialog"
+                        aria-labelledby="exampleModalLabel"
+                        aria-hidden={!showModal}
+                      >
+                        <div className="modal-dialog" role="document">
+                          <div className="modal-content">
+                            <div className="modal-header">
+                              <h5 className="modal-title" id="exampleModalLabel">
+                                Messaggio
+                              </h5>
+                            </div>
+                            <div className="modal-body">{messaggio}</div>
+                            <div className="modal-footer">
+                              <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                Chiudi
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {showModal && <div className="modal-backdrop fade show"></div>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
