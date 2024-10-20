@@ -153,22 +153,104 @@ const MyFiltri = () => {
       const token = localStorage.getItem("token");
 
       let URL;
-      switch (filtri.azione) {
-        case "POST":
-          URL = `http://localhost:3001/${filtri.endpoint}`;
-          break;
-        case "DELETE":
-          URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
-          break;
+      switch (filtri.endpoint) {
+        case "dipendenti":
+          switch (filtri.azione) {
+            case "POST":
+              URL = `http://localhost:3001/${filtri.endpoint}`;
+              break;
+            case "DELETE":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+              break;
 
-        case "PUT":
-          URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+            case "PUT":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+              break;
+            case "GET":
+              URL = `http://localhost:3001/${filtri.endpoint}`;
+              break;
+            default:
+              throw new Error("Definisci il metodo di invio del payload");
+          }
           break;
-        case "GET":
-          URL = `http://localhost:3001/${filtri.endpoint}`;
+        case "assenze":
+          switch (filtri.azione) {
+            case "POST":
+              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+              break;
+            case "DELETE":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "PUT":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "GET":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "APPROVA RECORDS":
+              URL = `http://localhost:3001/${filtri.endpoint}/approvazione-assenza/${filtri.id}`;
+              break;
+            default:
+              throw new Error("Definisci il metodo di invio del payload");
+          }
           break;
-        default:
-          throw new Error("Definisci il metodo di invio del payload");
+        case "ferie":
+          switch (filtri.azione) {
+            case "POST":
+              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+              break;
+            case "GET":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "APPROVA RECORDS":
+              URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
+              break;
+            default:
+              throw new Error("Definisci il metodo di invio del payload");
+          }
+          break;
+        case "bustepaga":
+          switch (filtri.azione) {
+            case "POST":
+              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+              break;
+            case "GET":
+              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+              break;
+            case "APPROVA RECORDS":
+              URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
+              break;
+            case "PUT":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "DELETE":
+              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+              break;
+            default:
+              throw new Error("Definisci il metodo di invio del payload");
+          }
+          break;
+        case "presenze":
+          switch (filtri.azione) {
+            case "POST":
+              URL = `http://localhost:3001/${filtri.endpoint}`;
+              break;
+            case "GET":
+              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+              break;
+            case "APPROVA RECORDS":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}/status`;
+              break;
+            case "PUT":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            case "DELETE":
+              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+              break;
+            default:
+              throw new Error("Definisci il metodo di invio del payload");
+          }
+          break;
       }
 
       const options = {
@@ -198,15 +280,18 @@ const MyFiltri = () => {
       console.error("Errore di connessione:", error);
     }
   };
+
   const handleSubmit = (e) => {
     if (filtri.endpoint === "dipendenti" && filtri.azione === "GET") {
       e.preventDefault();
       searchDipendenteDB();
+
       setShowForm(true);
     } else if (filtri.endpoint === "dipendenti" && filtri.azione === "PUT" && filtri.dipendenteID.length > 0) {
       e.preventDefault();
       searchDipendenteDB();
       setShowForm(true);
+
       if (
         filtri.nomeCRUD ||
         filtri.cognomeCRUD ||
@@ -218,6 +303,8 @@ const MyFiltri = () => {
         filtri.data
       ) {
         creaEditDipendente();
+        setShowModal(true);
+        alert(`dipendenteID:${filtri.dipendenteID} modificato con successo!`);
       }
     } else if (filtri.endpoint === "dipendenti" && (filtri.azione === "PUT" || filtri.azione === "POST")) {
       e.preventDefault();
@@ -227,6 +314,7 @@ const MyFiltri = () => {
       creaEditDipendente();
     }
   };
+
   const cleaner = () => {
     setFiltri((state) => ({ ...state, dipendenteID: "" }));
     setSearch({});
