@@ -256,8 +256,14 @@ const MyFiltri = () => {
     }
 
     if (filtri.data) {
-      dipendenteData.dataAssunzione = filtri.data;
+      filtri.endpoint === "dipendenti"
+        ? (dipendenteData.dataAssunzione = filtri.data)
+        : (dipendenteData.data = filtri.data);
     }
+    if (filtri.motivo) {
+      dipendenteData.motivo = filtri.motivo;
+    }
+
     let options = {
       method: filtri.azione,
       headers: {
@@ -297,14 +303,14 @@ const MyFiltri = () => {
     }
   };
 
-  const crudAssenzeFetch = async () => {
+  const crudEntitaFetch = async () => {
     try {
       const resp = await fetch(URLgenerator(), optionsGenerator());
       if (!resp.ok) {
-        throw new Error("Errore nella fetch crud assenze!");
+        throw new Error(`Errore nella fetch crud ${filtri.endpoint}-${filtri.azione}!`);
       }
       if (resp.status === 204) {
-        alert("Assennza eliminata con successo!");
+        alert("Assenza eliminata con successo!");
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -317,7 +323,7 @@ const MyFiltri = () => {
       console.error("Errore di connessione:", error);
     }
   };
-  const listePerStato = async () => {
+  /* const listePerStato = async () => {
     try {
       const resp = await fetch(
         `http://localhost:3001/${filtri.endpoint}/stato?stato=${filtri.stato}`,
@@ -338,7 +344,7 @@ const MyFiltri = () => {
     } catch (error) {
       console.error("Errore di connessione:", error);
     }
-  };
+  }; */
   const listePerData = async () => {
     try {
       const resp = await fetch(
@@ -406,7 +412,7 @@ const MyFiltri = () => {
           searchDipendenteDB();
           setShowRicercaID(true);
         } else if (filtri.id.length > 0) {
-          crudAssenzeFetch();
+          crudEntitaFetch();
         } else if (filtri.data.length > 0 && filtri.data2.length > 0) {
           listePerData();
         }
