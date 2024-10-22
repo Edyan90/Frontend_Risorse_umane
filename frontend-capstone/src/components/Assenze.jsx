@@ -49,19 +49,17 @@ const Assenze = () => {
 
   const filtraDipendenti = () => {
     return listaCompleta.filter((dipendente) => {
-      if (!dipendente.assenze || dipendente.assenze.length === 0) {
-        return false;
-      }
-      const assenzeFiltrate = dipendente.assenze.filter((assenza) => {
-        return (
-          (filtri.assenzaID === "" || assenza.id.toString().toLowerCase().includes(filtri.assenzaID.toLowerCase())) &&
-          (filtri.stato === "" || assenza.stato.toLowerCase().includes(filtri.stato.toLowerCase()))
-        );
-      });
-      const nomefiltrato = filtri.nome === "" || dipendente.nome.toLowerCase().includes(filtri.nome.toLowerCase());
-      const cognomefiltrato =
+      const nomeMatch = filtri.nome === "" || dipendente.nome.toLowerCase().includes(filtri.nome.toLowerCase());
+      const cognomeMatch =
         filtri.cognome === "" || dipendente.cognome.toLowerCase().includes(filtri.cognome.toLowerCase());
-      return assenzeFiltrate.length > 0 && nomefiltrato && cognomefiltrato;
+      const emailMatch = filtri.email === "" || dipendente.email.toLowerCase().includes(filtri.email.toLowerCase());
+      const statoMatch = filtri.stato === "" || dipendente.stato === filtri.stato;
+      const inizioData = new Date(filtri.dataInizio);
+      const fineData = new Date(filtri.dataFine);
+      const dataDipendente = new Date(dipendente.data);
+      const dataMatch =
+        (isNaN(inizioData) || dataDipendente >= inizioData) && (isNaN(fineData) || dataDipendente <= fineData);
+      return nomeMatch && cognomeMatch && emailMatch && statoMatch && dataMatch;
     });
   };
 
