@@ -319,6 +319,7 @@ const MyFiltri = () => {
       setSearch(result);
       setShowRicercaID(true);
       console.log("Assenza creata con successo:", result);
+      setMessaggio("Assenza creata con successo!");
     } catch (error) {
       console.error("Errore di connessione:", error);
     }
@@ -415,6 +416,13 @@ const MyFiltri = () => {
           crudEntitaFetch();
         } else if (filtri.data.length > 0 && filtri.data2.length > 0) {
           listePerData();
+        }
+      } else if (filtri.azione === "POST") {
+        if (filtri.dipendenteID.length > 0) {
+          searchDipendenteDB();
+          setShowRicercaID(true);
+        } else if (filtri.id.length > 0) {
+          crudEntitaFetch();
         }
       }
     }
@@ -1422,6 +1430,21 @@ const MyFiltri = () => {
                       className="custom-input"
                     />
                   </Form.Group>
+                  <Button className="my-2" onClick={handleSubmit}>
+                    Invia
+                  </Button>
+                  {search.id && (
+                    <Col key={search.id} lg={4}>
+                      <h3>Dipendente trovato:</h3>
+                      <Card style={{ width: "15rem" }} className="m-3 p-3">
+                        <Card.Img variant="top" src={`${search.avatar}`} />
+                        <Card.Body>
+                          <Card.Title>{`${search.nome} ${search.cognome}`}</Card.Title>
+                          <Card.Text>Ruolo: {`${search.ruolo}`}</Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  )}
                   <Form.Group controlId="nome">
                     <Form.Label>Ricerca dipendente per Nome:</Form.Label>
                     <Form.Control
@@ -1455,6 +1478,41 @@ const MyFiltri = () => {
                       className="custom-input"
                     />
                   </Form.Group>
+
+                  <div>
+                    <Row>
+                      {(filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) &&
+                      dipendentiFiltrati.length > 0
+                        ? dipendentiFiltrati.map((dipendente) => (
+                            <Col key={dipendente.id} lg={4}>
+                              <Card
+                                style={{ width: "15rem" }}
+                                className={`m-3 p-3 ${
+                                  cardSelezionata === dipendente.id ? "border-danger border-4" : ""
+                                }`}
+                              >
+                                <Card.Img variant="top" src={`${dipendente.avatar}`} />
+                                <Card.Body>
+                                  <Card.Title>{`${dipendente.nome} ${dipendente.cognome}`}</Card.Title>
+                                  <Card.Text>Ruolo: {`${dipendente.ruolo}`}</Card.Text>
+                                  <Button
+                                    variant={cardSelezionata === dipendente.id ? "warning" : "primary"}
+                                    onClick={() => selezionato(dipendente.id)}
+                                  >
+                                    {toogle && cardSelezionata === dipendente.id
+                                      ? "Deseleziona dipendente"
+                                      : "Seleziona dipendente"}
+                                  </Button>
+                                </Card.Body>
+                              </Card>
+                            </Col>
+                          ))
+                        : (filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) && (
+                            <h1>Nessun dipendente trovato.</h1>
+                          )}
+                    </Row>
+                  </div>
+
                   <h6 className="mt-4">Crea o modifica Assenza per il dipendente</h6>
                   <Form.Group controlId="data">
                     <Form.Label>Inserisci data assenza:</Form.Label>
@@ -1479,6 +1537,38 @@ const MyFiltri = () => {
                       required
                     />
                   </Form.Group>
+                  <Button type="submit" className="mt-3">
+                    Submit
+                  </Button>
+                  {messaggio && (
+                    <div>
+                      <div
+                        className={`modal fade ${showModal ? "show" : ""}`}
+                        style={{ display: showModal ? "block" : "none" }}
+                        tabIndex="-1"
+                        role="dialog"
+                        aria-labelledby="exampleModalLabel"
+                        aria-hidden={!showModal}
+                      >
+                        <div className="modal-dialog" role="document">
+                          <div className="modal-content">
+                            <div className="modal-header">
+                              <h5 className="modal-title" id="exampleModalLabel">
+                                Messaggio
+                              </h5>
+                            </div>
+                            <div className="modal-body">{messaggio}</div>
+                            <div className="modal-footer">
+                              <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                Chiudi
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {showModal && <div className="modal-backdrop fade show"></div>}
+                    </div>
+                  )}
                 </div>
               )}
               {filtri.azione === "PATCH" && (
