@@ -7,6 +7,7 @@ const MyFiltri = () => {
   const dipendente = useSelector((state) => state.dipendente.dipendente);
   const navigate = useNavigate();
   const [listaCompleta, setListaCompleta] = useState([]);
+  const [listaGenerica, setListaGenerica] = useState([]);
   const [search, setSearch] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [messaggio, setMessaggio] = useState("");
@@ -316,6 +317,51 @@ const MyFiltri = () => {
       console.error("Errore di connessione:", error);
     }
   };
+  const listePerStato = async () => {
+    try {
+      const resp = await fetch(
+        `http://localhost:3001/${filtri.endpoint}/stato?stato=${filtri.stato}`,
+        optionsGenerator()
+      );
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch lista per stato!");
+      }
+      if (resp.status === 204) {
+        setTimeout(() => {
+          alert("Entità eliminata!");
+          window.location.reload();
+        }, 2000);
+      }
+      const result = await resp.json();
+      setListaGenerica(result);
+      console.log("Lista ottenute: ", result);
+    } catch (error) {
+      console.error("Errore di connessione:", error);
+    }
+  };
+  const listePerData = async () => {
+    try {
+      const resp = await fetch(
+        `http://localhost:3001/${filtri.endpoint}/periodo?startDate=${filtri.data}&endDate=${filtri.data2}`,
+        optionsGenerator()
+      );
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch lista per stato!");
+      }
+      if (resp.status === 204) {
+        setTimeout(() => {
+          alert("Entità eliminata!");
+          window.location.reload();
+        }, 2000);
+      }
+      const result = await resp.json();
+      setListaGenerica(result);
+
+      console.log("Lista ottenute: ", result);
+    } catch (error) {
+      console.error("Errore di connessione:", error);
+    }
+  };
 
   const handleSubmit = (e) => {
     if (filtri.endpoint === "dipendenti" && filtri.azione === "GET") {
@@ -361,13 +407,15 @@ const MyFiltri = () => {
           setShowRicercaID(true);
         } else if (filtri.id.length > 0) {
           crudAssenzeFetch();
+        } else if (filtri.data.length > 0 && filtri.data2.length > 0) {
+          listePerData();
         }
       }
     }
   };
 
   const cleaner = () => {
-    setFiltri((state) => ({ ...state, dipendenteID: "" }));
+    setFiltri((state) => ({ ...state, dipendenteID: "", data: "", data2: "" }));
     setSearch({});
   };
   const eliminazione = () => {
@@ -934,7 +982,7 @@ const MyFiltri = () => {
           )
         )}
         {filtri.endpoint === "assenze" && (filtri.azione === "GET" || filtri.azione === "DELETE") ? (
-          <div className="w-50">
+          <div className="w-75">
             {/*  -------------------------------------------------ASSENZE--------------------------------------------
       -------------------------------------------------------------------------------------------------------
       ------------------------------------------------------------------------------------------------------- */}
@@ -1020,39 +1068,43 @@ const MyFiltri = () => {
                 </Col>
               )
             )}
-            <Form.Group controlId="nome">
-              <Form.Label>Ricerca per Nome:</Form.Label>
-              <Form.Control
-                placeholder="@nome dipendente"
-                type="text"
-                name="nome"
-                value={filtri.nome}
-                onChange={handleFilterChange}
-                className="custom-input"
-              />
-            </Form.Group>
-            <Form.Group controlId="cognome">
-              <Form.Label>Ricerca per Cognome:</Form.Label>
-              <Form.Control
-                placeholder="@cognome dipendente"
-                type="text"
-                name="cognome"
-                value={filtri.cognome}
-                onChange={handleFilterChange}
-                className="custom-input"
-              />
-            </Form.Group>
-            <Form.Group controlId="email">
-              <Form.Label>Ricerca per Email:</Form.Label>
-              <Form.Control
-                placeholder="@email dipendente"
-                type="text"
-                name="email"
-                value={filtri.email}
-                onChange={handleFilterChange}
-                className="custom-input"
-              />
-            </Form.Group>
+            <h5>Ricerca per Nomenclatura:</h5>
+            <div className=" d-flex gap-3">
+              <Form.Group controlId="nome">
+                <Form.Label>Ricerca per Nome:</Form.Label>
+                <Form.Control
+                  placeholder="@nome dipendente"
+                  type="text"
+                  name="nome"
+                  value={filtri.nome}
+                  onChange={handleFilterChange}
+                  className="custom-input"
+                />
+              </Form.Group>
+              <Form.Group controlId="cognome">
+                <Form.Label>Ricerca per Cognome:</Form.Label>
+                <Form.Control
+                  placeholder="@cognome dipendente"
+                  type="text"
+                  name="cognome"
+                  value={filtri.cognome}
+                  onChange={handleFilterChange}
+                  className="custom-input"
+                />
+              </Form.Group>
+              <Form.Group controlId="email">
+                <Form.Label>Ricerca per Email:</Form.Label>
+                <Form.Control
+                  placeholder="@email dipendente"
+                  type="text"
+                  name="email"
+                  value={filtri.email}
+                  onChange={handleFilterChange}
+                  className="custom-input"
+                />
+              </Form.Group>
+            </div>
+            <h5 className="mt-5">Oppure:</h5>
             <Form.Group controlId="stato">
               <Form.Label>Ricerca per Stato:</Form.Label>
               <Form.Control
@@ -1068,8 +1120,118 @@ const MyFiltri = () => {
                 <option value="IN_ATTESA">IN ATTESA</option>
               </Form.Control>
             </Form.Group>
+            {(filtri.nome.length > 0 ||
+              filtri.cognome.length > 0 ||
+              filtri.email.length > 0 ||
+              filtri.stato.length > 0) && (
+              <>
+                {filtri.stato === "IN_ATTESA" ? (
+                  <>
+                    <h3>Assenze in Attesa</h3>
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>ID Assenza</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                          <th>Azioni</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dipendentiFiltrati.map((dipendente) =>
+                          dipendente.assenze
+                            .filter((assenza) => assenza.stato === "IN_ATTESA")
+                            .map((assenza) => (
+                              <tr key={assenza.id}>
+                                <td>
+                                  {dipendente.nome} {dipendente.cognome}
+                                </td>
+                                <td>{assenza.id}</td>
+                                <td>{assenza.data}</td>
+                                <td>{assenza.motivo}</td>
+                                <td>{assenza.stato}</td>
+                                <td>
+                                  <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Approva</Button>
+                                </td>
+                              </tr>
+                            ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </>
+                ) : filtri.stato === "APPROVATO" ? (
+                  <>
+                    <h3>Assenze Approvate</h3>
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>ID Assenza</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dipendentiFiltrati.map((dipendente) =>
+                          dipendente.assenze
+                            .filter((assenza) => assenza.stato === "APPROVATO")
+                            .map((assenza) => (
+                              <tr key={assenza.id}>
+                                <td>
+                                  {dipendente.nome} {dipendente.cognome}
+                                </td>
+                                <td>{assenza.id}</td>
+                                <td>{assenza.data}</td>
+                                <td>{assenza.motivo}</td>
+                                <td>{assenza.stato}</td>
+                              </tr>
+                            ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </>
+                ) : filtri.stato === "NON_APPROVATA" ? (
+                  <>
+                    <h3>Assenze Non Approvate</h3>
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>ID Assenza</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dipendentiFiltrati.map((dipendente) =>
+                          dipendente.assenze
+                            .filter((assenza) => assenza.stato === "NON_APPROVATA")
+                            .map((assenza) => (
+                              <tr key={assenza.id}>
+                                <td>
+                                  {dipendente.nome} {dipendente.cognome}
+                                </td>
+                                <td>{assenza.id}</td>
+                                <td>{assenza.data}</td>
+                                <td>{assenza.motivo}</td>
+                                <td>{assenza.stato}</td>
+                              </tr>
+                            ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </>
+                ) : (
+                  <h3>Non sono presenti dei record</h3>
+                )}
+              </>
+            )}
             <Form.Group controlId="dataInizio">
-              <Form.Label>Ricerca per Data Inizio Ferie...</Form.Label>
+              <Form.Label>Ricerca per Periodo: data Inizio...</Form.Label>
               <Form.Control
                 type="date"
                 name="data"
@@ -1079,7 +1241,7 @@ const MyFiltri = () => {
               />
             </Form.Group>
             <Form.Group controlId="dataFine">
-              <Form.Label>...e Data Fine Ferie:</Form.Label>
+              <Form.Label>...e Data Fine:</Form.Label>
               <Form.Control
                 type="date"
                 name="data2"
@@ -1088,6 +1250,39 @@ const MyFiltri = () => {
                 className="custom-input"
               />
             </Form.Group>
+            <Button className="mb-5 mt-3" onClick={handleSubmit}>
+              Invia
+            </Button>
+            {filtri.data.length > 0 && filtri.data2.length > 0 && listaGenerica && listaGenerica.length > 0 ? (
+              <>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Assenza ID</th>
+                      <th>Data</th>
+                      <th>Motivo</th>
+                      <th>Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listaGenerica.map((assenza) => (
+                      <tr key={assenza.id}>
+                        <td>{assenza.id}</td>
+                        <td>{assenza.data}</td>
+                        <td>{assenza.motivo}</td>
+                        <td>{assenza.stato}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                <Button onClick={cleaner}>Resetta Filtri</Button>
+              </>
+            ) : (
+              <>
+                <p>Non ci sono assenze in attesa.</p>
+                <Button onClick={cleaner}>Resetta Filtri</Button>
+              </>
+            )}
           </div>
         ) : (
           filtri.endpoint === "assenze" && (
