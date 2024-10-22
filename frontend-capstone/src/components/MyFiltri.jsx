@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, Col, Form, Row } from "react-bootstrap";
+import { Alert, Button, Card, Col, Form, Row, Table } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -11,6 +11,7 @@ const MyFiltri = () => {
   const [showForm, setShowForm] = useState(false);
   const [messaggio, setMessaggio] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showRicercaID, setShowRicercaID] = useState(false);
   const [toogle, setToogle] = useState(false);
   const [conferma, setConferma] = useState(false);
   const [filtri, setFiltri] = useState({
@@ -76,7 +77,6 @@ const MyFiltri = () => {
       }
       const data = await resp.json();
       console.log("Dati ricevuti:", data);
-
       setListaCompleta(data.content);
     } catch (error) {
       console.error("Errore nella fetch lista-dipendenti!", error);
@@ -270,11 +270,18 @@ const MyFiltri = () => {
 
     return options;
   };
+
   const creaEditDipendente = async () => {
     try {
       const resp = await fetch(URLgenerator(), optionsGenerator());
       if (!resp.ok) {
         throw new Error("Errore nella fetch creazione dipendenti!");
+      }
+      if (resp.status === 204) {
+        alert("Dipendente eliminato con successo!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
       const result = await resp.json();
       console.log("Dipendente creato con successo:", result);
@@ -284,6 +291,27 @@ const MyFiltri = () => {
         window.location.reload();
       }, 2000);
       setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: "" }));
+    } catch (error) {
+      console.error("Errore di connessione:", error);
+    }
+  };
+
+  const crudAssenzeFetch = async () => {
+    try {
+      const resp = await fetch(URLgenerator(), optionsGenerator());
+      if (!resp.ok) {
+        throw new Error("Errore nella fetch crud assenze!");
+      }
+      if (resp.status === 204) {
+        alert("Assennza eliminata con successo!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+      const result = await resp.json();
+      setSearch(result);
+      setShowRicercaID(true);
+      console.log("Assenza creata con successo:", result);
     } catch (error) {
       console.error("Errore di connessione:", error);
     }
@@ -319,30 +347,20 @@ const MyFiltri = () => {
       creaEditDipendente();
     } else if (filtri.endpoint === "dipendenti" && filtri.azione === "DELETE") {
       e.preventDefault();
-
-      // Se non è confermato, mostra il dipendente da eliminare
       if (!conferma) {
         searchDipendenteDB();
+        alert("Eliminando il dipendente si perderanno anche relativi dati associati ad esso");
       } else {
-        // Procedi all'eliminazione
+        alert("Dipendete Eliminato");
         creaEditDipendente();
-
-        // Mostra l'alert prima di qualsiasi azione di ricarica
-        alert("Dipendente eliminato con successo!");
-
-        // Imposta un timeout per fare un'operazione di reset e ricarica
-        setTimeout(() => {
-          setConferma(false); // Resetta la conferma
-          window.location.reload(); // Ricarica la pagina
-        }, 2000);
       }
-    }
-    if (filtri.endpoint === "assenze" || filtri.endpoint === "ferie" || filtri.endpoint === "bustepaga") {
+    } else if (filtri.endpoint === "assenze" || filtri.endpoint === "ferie" || filtri.endpoint === "bustepaga") {
       if (filtri.azione === "GET") {
-        if (filtri.dipendenteID > 0) {
+        if (filtri.dipendenteID.length > 0) {
           searchDipendenteDB();
-        } else if (filtri.id > 0) {
-          /* searchEntityFromDB(); */
+          setShowRicercaID(true);
+        } else if (filtri.id.length > 0) {
+          crudAssenzeFetch();
         }
       }
     }
@@ -364,6 +382,7 @@ const MyFiltri = () => {
   useEffect(() => {
     console.log(search);
     console.log(filtri.dipendenteID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtri.dipendenteID]);
 
   return (
@@ -945,7 +964,62 @@ const MyFiltri = () => {
             <Button className="my-3" onClick={handleSubmit}>
               Invia
             </Button>
-
+            {showRicercaID && search && search.motivo ? (
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>Assenza ID</th>
+                    <th>Data</th>
+                    <th>Motivo</th>
+                    <th>Stato</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{search.id}</td>
+                    <td>{search.data}</td>
+                    <td>{search.motivo}</td>
+                    <td>{search.stato}</td>
+                  </tr>
+                </tbody>
+              </Table>
+            ) : showRicercaID && search && search.assenze && search.assenze.length > 0 ? (
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>Dipendente</th>
+                    <th>Assenza ID</th>
+                    <th>Data</th>
+                    <th>Motivo</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {search.assenze.map((assenza) => (
+                    <tr key={search.id}>
+                      <td>
+                        {search.nome} {search.cognome}
+                      </td>
+                      <td>{assenza.id}</td>
+                      <td>{assenza.data}</td>
+                      <td>{assenza.motivo}</td>
+                      <td>{assenza.stato}</td>
+                      <td>
+                        <Button onClick={() => navigate(`/dipendenti/${search.id}`)}>Vedi profilo</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              showRicercaID && (
+                <Col>
+                  <p>Nessuna assenza registrata!</p>
+                  <Button onClick={() => navigate("/home")}>Torna alla Home</Button>
+                </Col>
+              )
+            )}
             <Form.Group controlId="nome">
               <Form.Label>Ricerca per Nome:</Form.Label>
               <Form.Control
