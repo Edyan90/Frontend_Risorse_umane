@@ -319,12 +319,21 @@ const MyFiltri = () => {
       creaEditDipendente();
     } else if (filtri.endpoint === "dipendenti" && filtri.azione === "DELETE") {
       e.preventDefault();
-      searchDipendenteDB();
-      if (conferma) {
+
+      // Se non è confermato, mostra il dipendente da eliminare
+      if (!conferma) {
+        searchDipendenteDB();
+      } else {
+        // Procedi all'eliminazione
         creaEditDipendente();
-        alert("dipendente eliminato!");
+
+        // Mostra l'alert prima di qualsiasi azione di ricarica
+        alert("Dipendente eliminato con successo!");
+
+        // Imposta un timeout per fare un'operazione di reset e ricarica
         setTimeout(() => {
-          window.location.reload();
+          setConferma(false); // Resetta la conferma
+          window.location.reload(); // Ricarica la pagina
         }, 2000);
       }
     }
@@ -333,7 +342,7 @@ const MyFiltri = () => {
         if (filtri.dipendenteID > 0) {
           searchDipendenteDB();
         } else if (filtri.id > 0) {
-          searchEntityFromDB();
+          /* searchEntityFromDB(); */
         }
       }
     }
@@ -343,7 +352,12 @@ const MyFiltri = () => {
     setFiltri((state) => ({ ...state, dipendenteID: "" }));
     setSearch({});
   };
+  const eliminazione = () => {
+    setConferma(true);
+    creaEditDipendente();
+  };
   const dipendentiFiltrati = filtraDipendenti();
+
   useEffect(() => {
     listaDipendenti();
   }, []);
@@ -465,8 +479,8 @@ const MyFiltri = () => {
                     {search.nome} {search.cognome}
                   </h6>
                   <p>ID: {search.id}</p>
-                  <Button className="m-2" onClick={cleaner}>
-                    Nuova ricerca
+                  <Button className="m-2" onClick={filtri.azione === "DELETE" ? eliminazione : cleaner}>
+                    {filtri.azione === "DELETE" ? "Elimina Dipendente" : "Nuova Ricerca"}
                   </Button>
                 </div>
               </div>
