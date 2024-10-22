@@ -12,6 +12,7 @@ const MyFiltri = () => {
   const [messaggio, setMessaggio] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toogle, setToogle] = useState(false);
+  const [conferma, setConferma] = useState(false);
   const [filtri, setFiltri] = useState({
     endpoint: "",
     azione: "",
@@ -113,158 +114,165 @@ const MyFiltri = () => {
       );
     });
   };
+  const URLgenerator = () => {
+    let URL;
+    switch (filtri.endpoint) {
+      case "dipendenti":
+        switch (filtri.azione) {
+          case "POST":
+            URL = `http://localhost:3001/${filtri.endpoint}`;
+            break;
+          case "DELETE":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+            break;
+
+          case "PUT":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
+            break;
+          case "GET":
+            URL = `http://localhost:3001/${filtri.endpoint}`;
+            break;
+          default:
+            throw new Error("Definisci il metodo di invio del payload");
+        }
+        break;
+      case "assenze":
+        switch (filtri.azione) {
+          case "POST":
+            URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+            break;
+          case "DELETE":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "PUT":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "GET":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "APPROVA RECORDS":
+            URL = `http://localhost:3001/${filtri.endpoint}/approvazione-assenza/${filtri.id}`;
+            break;
+          default:
+            throw new Error("Definisci il metodo di invio del payload");
+        }
+        break;
+      case "ferie":
+        switch (filtri.azione) {
+          case "POST":
+            URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+            break;
+          case "GET":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "APPROVA RECORDS":
+            URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
+            break;
+          default:
+            throw new Error("Definisci il metodo di invio del payload");
+        }
+        break;
+      case "bustepaga":
+        switch (filtri.azione) {
+          case "POST":
+            URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
+            break;
+          case "GET":
+            URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+            break;
+          case "APPROVA RECORDS":
+            URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
+            break;
+          case "PUT":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "DELETE":
+            URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+            break;
+          default:
+            throw new Error("Definisci il metodo di invio del payload");
+        }
+        break;
+      case "presenze":
+        switch (filtri.azione) {
+          case "POST":
+            URL = `http://localhost:3001/${filtri.endpoint}`;
+            break;
+          case "GET":
+            URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
+            break;
+          case "APPROVA RECORDS":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}/status`;
+            break;
+          case "PUT":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          case "DELETE":
+            URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
+            break;
+          default:
+            throw new Error("Definisci il metodo di invio del payload");
+        }
+        break;
+      default:
+        throw new Error("endpoint non trovato!");
+    }
+    return URL;
+  };
+
+  const optionsGenerator = () => {
+    const token = localStorage.getItem("token");
+    const dipendenteData = {};
+    if (filtri.dipendenteID) {
+      dipendenteData.dipendenteID = filtri.dipendenteID;
+    }
+    if (filtri.nomeCRUD) {
+      dipendenteData.nome = filtri.nomeCRUD;
+    }
+
+    if (filtri.cognomeCRUD) {
+      dipendenteData.cognome = filtri.cognomeCRUD;
+    }
+
+    if (filtri.emailCRUD) {
+      dipendenteData.email = filtri.emailCRUD;
+    }
+
+    if (filtri.stato) {
+      dipendenteData.ruolo = filtri.stato;
+    }
+
+    if (filtri.username) {
+      dipendenteData.username = filtri.username;
+    }
+
+    if (filtri.stipendio) {
+      dipendenteData.stipendio = parseFloat(filtri.stipendio);
+    }
+
+    if (filtri.password) {
+      dipendenteData.password = filtri.password;
+    }
+
+    if (filtri.data) {
+      dipendenteData.dataAssunzione = filtri.data;
+    }
+    let options = {
+      method: filtri.azione,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
+    if (filtri.azione === "POST" || filtri.azione === "DELETE" || filtri.azione == "PUT") {
+      options.body = JSON.stringify(dipendenteData);
+    }
+
+    return options;
+  };
   const creaEditDipendente = async () => {
     try {
-      const dipendenteData = {};
-      if (filtri.dipendenteID) {
-        dipendenteData.dipendenteID = filtri.dipendenteID;
-      }
-      if (filtri.nomeCRUD) {
-        dipendenteData.nome = filtri.nomeCRUD;
-      }
-
-      if (filtri.cognomeCRUD) {
-        dipendenteData.cognome = filtri.cognomeCRUD;
-      }
-
-      if (filtri.emailCRUD) {
-        dipendenteData.email = filtri.emailCRUD;
-      }
-
-      if (filtri.stato) {
-        dipendenteData.ruolo = filtri.stato;
-      }
-
-      if (filtri.username) {
-        dipendenteData.username = filtri.username;
-      }
-
-      if (filtri.stipendio) {
-        dipendenteData.stipendio = parseFloat(filtri.stipendio);
-      }
-
-      if (filtri.password) {
-        dipendenteData.password = filtri.password;
-      }
-
-      if (filtri.data) {
-        dipendenteData.dataAssunzione = filtri.data;
-      }
-      const token = localStorage.getItem("token");
-
-      let URL;
-      switch (filtri.endpoint) {
-        case "dipendenti":
-          switch (filtri.azione) {
-            case "POST":
-              URL = `http://localhost:3001/${filtri.endpoint}`;
-              break;
-            case "DELETE":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
-              break;
-
-            case "PUT":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.dipendenteID}`;
-              break;
-            case "GET":
-              URL = `http://localhost:3001/${filtri.endpoint}`;
-              break;
-            default:
-              throw new Error("Definisci il metodo di invio del payload");
-          }
-          break;
-        case "assenze":
-          switch (filtri.azione) {
-            case "POST":
-              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
-              break;
-            case "DELETE":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "PUT":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "GET":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "APPROVA RECORDS":
-              URL = `http://localhost:3001/${filtri.endpoint}/approvazione-assenza/${filtri.id}`;
-              break;
-            default:
-              throw new Error("Definisci il metodo di invio del payload");
-          }
-          break;
-        case "ferie":
-          switch (filtri.azione) {
-            case "POST":
-              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
-              break;
-            case "GET":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "APPROVA RECORDS":
-              URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
-              break;
-            default:
-              throw new Error("Definisci il metodo di invio del payload");
-          }
-          break;
-        case "bustepaga":
-          switch (filtri.azione) {
-            case "POST":
-              URL = `http://localhost:3001/${filtri.endpoint}/assenza-manager`;
-              break;
-            case "GET":
-              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
-              break;
-            case "APPROVA RECORDS":
-              URL = `http://localhost:3001/${filtri.endpoint}/stato-ferie?approvazione=${filtri.stato}`;
-              break;
-            case "PUT":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "DELETE":
-              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
-              break;
-            default:
-              throw new Error("Definisci il metodo di invio del payload");
-          }
-          break;
-        case "presenze":
-          switch (filtri.azione) {
-            case "POST":
-              URL = `http://localhost:3001/${filtri.endpoint}`;
-              break;
-            case "GET":
-              URL = `http://localhost:3001/${filtri.endpoint}/singola/${filtri.id}`;
-              break;
-            case "APPROVA RECORDS":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}/status`;
-              break;
-            case "PUT":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            case "DELETE":
-              URL = `http://localhost:3001/${filtri.endpoint}/${filtri.id}`;
-              break;
-            default:
-              throw new Error("Definisci il metodo di invio del payload");
-          }
-          break;
-      }
-
-      const options = {
-        method: filtri.azione,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      };
-      if (filtri.azione === "POST" || filtri.azione === "DELETE" || filtri.azione == "PUT") {
-        options.body = JSON.stringify(dipendenteData);
-      }
-
-      const resp = await fetch(URL, options);
+      const resp = await fetch(URLgenerator(), optionsGenerator());
       if (!resp.ok) {
         throw new Error("Errore nella fetch creazione dipendenti!");
       }
@@ -311,7 +319,23 @@ const MyFiltri = () => {
       creaEditDipendente();
     } else if (filtri.endpoint === "dipendenti" && filtri.azione === "DELETE") {
       e.preventDefault();
-      creaEditDipendente();
+      searchDipendenteDB();
+      if (conferma) {
+        creaEditDipendente();
+        alert("dipendente eliminato!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    }
+    if (filtri.endpoint === "assenze" || filtri.endpoint === "ferie" || filtri.endpoint === "bustepaga") {
+      if (filtri.azione === "GET") {
+        if (filtri.dipendenteID > 0) {
+          searchDipendenteDB();
+        } else if (filtri.id > 0) {
+          searchEntityFromDB();
+        }
+      }
     }
   };
 
@@ -555,15 +579,15 @@ const MyFiltri = () => {
                     </Form.Group>
                   </div>
                   {search.id ? (
-                    <div className="bg-light rounded mt-5 w-50">
-                      <h4>Dipendente trovato:</h4>
-                      <div>
-                        <h6>
-                          {search.nome} {search.cognome}
-                        </h6>
-                        <p>ID: {search.id}</p>
-                      </div>
-                    </div>
+                    <Col key={search.id} lg={4}>
+                      <Card style={{ width: "15rem" }} className="m-3 p-3">
+                        <Card.Img variant="top" src={`${search.avatar}`} />
+                        <Card.Body>
+                          <Card.Title>{`${search.nome} ${search.cognome}`}</Card.Title>
+                          <Card.Text>Ruolo: {`${search.ruolo}`}</Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
                   ) : (
                     <div>
                       <Row>
@@ -634,7 +658,7 @@ const MyFiltri = () => {
                     <Form.Label>Inserisci Email:</Form.Label>
                     <Form.Control
                       placeholder="@email dipendente"
-                      type="text"
+                      type="email"
                       name="email"
                       value={filtri.emailCRUD}
                       onChange={handleFilterChange}
@@ -766,7 +790,7 @@ const MyFiltri = () => {
                     <Form.Label>Inserisci Email:</Form.Label>
                     <Form.Control
                       placeholder="@email dipendente"
-                      type="text"
+                      type="email"
                       name="emailCRUD"
                       value={filtri.emailCRUD}
                       onChange={handleFilterChange}
@@ -881,6 +905,7 @@ const MyFiltri = () => {
             {/*  -------------------------------------------------ASSENZE--------------------------------------------
       -------------------------------------------------------------------------------------------------------
       ------------------------------------------------------------------------------------------------------- */}
+            <h5>Ricerca per ID</h5>
             <Form.Group controlId="id">
               <Form.Label>Ricerca per Assenza ID:</Form.Label>
               <Form.Control
@@ -903,6 +928,10 @@ const MyFiltri = () => {
                 className="custom-input"
               />
             </Form.Group>
+            <Button className="my-3" onClick={handleSubmit}>
+              Invia
+            </Button>
+
             <Form.Group controlId="nome">
               <Form.Label>Ricerca per Nome:</Form.Label>
               <Form.Control
