@@ -316,6 +316,7 @@ const MyFiltri = () => {
         }, 2000);
       }
       const result = await resp.json();
+      alert("creazione/modifica avvenuta con successo");
       setSearch(result);
       setShowRicercaID(true);
       console.log("Assenza creata con successo:", result);
@@ -417,12 +418,13 @@ const MyFiltri = () => {
         } else if (filtri.data.length > 0 && filtri.data2.length > 0) {
           listePerData();
         }
-      } else if (filtri.azione === "POST") {
-        if (filtri.dipendenteID.length > 0) {
+      }
+      if (filtri.azione === "POST") {
+        if (filtri.dipendenteID.length > 0 && filtri.motivo.length > 0 && filtri.data.length > 0) {
+          crudEntitaFetch();
+        } else if (filtri.dipendenteID.length > 0) {
           searchDipendenteDB();
           setShowRicercaID(true);
-        } else if (filtri.id.length > 0) {
-          crudEntitaFetch();
         }
       }
     }
@@ -1537,7 +1539,7 @@ const MyFiltri = () => {
                       required
                     />
                   </Form.Group>
-                  <Button type="submit" className="mt-3">
+                  <Button type="submit" className="mt-3" onClick={handleSubmit}>
                     Submit
                   </Button>
                   {messaggio && (
