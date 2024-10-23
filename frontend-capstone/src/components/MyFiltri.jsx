@@ -321,6 +321,10 @@ const MyFiltri = () => {
       setShowRicercaID(true);
       console.log("Assenza creata con successo:", result);
       setMessaggio("Assenza creata con successo!");
+      setTimeout(() => {
+        cleaner();
+        window.location.reload();
+      }, 2000);
     } catch (error) {
       console.error("Errore di connessione:", error);
     }
@@ -1539,7 +1543,7 @@ const MyFiltri = () => {
                       required
                     />
                   </Form.Group>
-                  <Button type="submit" className="mt-3" onClick={handleSubmit}>
+                  <Button className="mt-3" onClick={handleSubmit}>
                     Submit
                   </Button>
                   {messaggio && (
