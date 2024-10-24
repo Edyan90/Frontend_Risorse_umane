@@ -8,6 +8,7 @@ const MyFiltri = () => {
   const navigate = useNavigate();
   const [listaCompleta, setListaCompleta] = useState([]);
   const [listaGenerica, setListaGenerica] = useState([]);
+  const [nascondi, setNascondi] = useState(true);
   const [search, setSearch] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [messaggio, setMessaggio] = useState("");
@@ -52,7 +53,21 @@ const MyFiltri = () => {
       setToogle(false);
     }
   };
-
+  const selezionataEntita = (id, dipendenteID) => {
+    if (!toogle) {
+      setCardSelezionata(id);
+      setFiltri((prevFiltri) => ({ ...prevFiltri, id: id }));
+      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: dipendenteID }));
+      setShowForm(true);
+      setToogle(true);
+    } else {
+      setCardSelezionata(null);
+      setFiltri((prevFiltri) => ({ ...prevFiltri, id: "" }));
+      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: "" }));
+      setShowForm(false);
+      setToogle(false);
+    }
+  };
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     let parsedValue = value;
@@ -316,15 +331,28 @@ const MyFiltri = () => {
         }, 2000);
       }
       const result = await resp.json();
-      alert("creazione/modifica avvenuta con successo");
+      if (filtri.endpoint === "POST") {
+        alert("creazione avvenuta con successo");
+      } else if (filtri.endpoint === "PUT") {
+        alert("MODIFICA avvenuta con successo");
+      }
+
       setSearch(result);
       setShowRicercaID(true);
       console.log("Assenza creata con successo:", result);
       setMessaggio("Assenza creata con successo!");
-      setTimeout(() => {
-        cleaner();
-        window.location.reload();
-      }, 2000);
+      if (filtri.azione === "DELETE") {
+        setTimeout(() => {
+          cleaner();
+          window.location.reload();
+        }, 2000);
+      } else if (filtri.azione === "PUT") {
+        alert("Entità modificata!");
+        setTimeout(() => {
+          cleaner();
+          window.location.reload();
+        }, 2000);
+      }
     } catch (error) {
       console.error("Errore di connessione:", error);
     }
@@ -374,7 +402,29 @@ const MyFiltri = () => {
       console.error("Errore di connessione:", error);
     }
   };
-
+  const searchEntitaFromDB = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(`http://localhost:3001/${filtri.endpoint}/${filtri.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!resp.ok) {
+        const errorResponse = await resp.json();
+        throw new Error(errorResponse.message || "Errore nella fetch search-entità!");
+      }
+      const data = await resp.json();
+      console.log("Dati ricevuti dal search:", data);
+      setSearch(data);
+      setShowRicercaID(true);
+      setFiltri((state) => (filtri.azione === "PUT" ? { ...state, dipendenteID: data.id } : { ...state, id: data.id }));
+    } catch (error) {
+      alert(error);
+      console.error("Errore nella fetch lista-dipendenti!", error);
+    }
+  };
   const handleSubmit = (e) => {
     if (filtri.endpoint === "dipendenti" && filtri.azione === "GET") {
       e.preventDefault();
@@ -426,6 +476,32 @@ const MyFiltri = () => {
       if (filtri.azione === "POST") {
         if (filtri.dipendenteID.length > 0 && filtri.motivo.length > 0 && filtri.data.length > 0) {
           crudEntitaFetch();
+        } else if (filtri.dipendenteID.length > 0) {
+          searchDipendenteDB();
+          setShowRicercaID(true);
+        }
+      } else if (filtri.azione === "PUT") {
+        if (
+          filtri.id.length > 0 &&
+          (filtri.data.length > 0 || filtri.motivo.length > 0) &&
+          filtri.dipendenteID.length > 0
+        ) {
+          crudEntitaFetch();
+        } else if (filtri.id && filtri.id.length > 0) {
+          searchEntitaFromDB();
+          setNascondi(false);
+          setShowForm(true);
+        } else if (filtri.dipendenteID.length > 0) {
+          searchDipendenteDB();
+          setShowRicercaID(true);
+        }
+      } else if (filtri.azione === "DELETE") {
+        if (filtri.id.length > 0 && (filtri.data.length > 0 || filtri.motivo.length > 0)) {
+          crudEntitaFetch();
+        } else if (filtri.id && filtri.id.length > 0) {
+          searchEntitaFromDB();
+          setNascondi(false);
+          setShowForm(true);
         } else if (filtri.dipendenteID.length > 0) {
           searchDipendenteDB();
           setShowRicercaID(true);
@@ -1352,6 +1428,26 @@ const MyFiltri = () => {
                       className="custom-input"
                     />
                   </Form.Group>
+                  {search && search.motivo && (
+                    <Table striped bordered hover className="mt-3">
+                      <thead>
+                        <tr>
+                          <th>Assenza ID</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{search.id}</td>
+                          <td>{search.data}</td>
+                          <td>{search.motivo}</td>
+                          <td>{search.stato}</td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  )}
                   <Form.Group controlId="dipendenteID">
                     <Form.Label>Ricerca dipendente per Dipendente ID:</Form.Label>
                     <Form.Control
@@ -1363,63 +1459,161 @@ const MyFiltri = () => {
                       className="custom-input"
                     />
                   </Form.Group>
-                  <Form.Group controlId="nome">
-                    <Form.Label>Ricerca dipendente per Nome:</Form.Label>
-                    <Form.Control
-                      placeholder="@nome dipendente"
-                      type="text"
-                      name="nome"
-                      value={filtri.nome}
-                      onChange={handleFilterChange}
-                      className="custom-input"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="cognome">
-                    <Form.Label>Ricerca dipendente per Cognome:</Form.Label>
-                    <Form.Control
-                      placeholder="@cognome dipendente"
-                      type="text"
-                      name="cognome"
-                      value={filtri.cognome}
-                      onChange={handleFilterChange}
-                      className="custom-input"
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="email">
-                    <Form.Label>Ricerca dipendente per Email:</Form.Label>
-                    <Form.Control
-                      placeholder="@email dipendente"
-                      type="text"
-                      name="email"
-                      value={filtri.email}
-                      onChange={handleFilterChange}
-                      className="custom-input"
-                    />
-                  </Form.Group>
-                  <h6 className="mt-4">Crea o modifica Assenza per il dipendente</h6>
-                  <Form.Group controlId="data">
-                    <Form.Label>Inserisci data assenza:</Form.Label>
-                    <Form.Control
-                      type="date"
-                      name="data"
-                      value={filtri.data}
-                      onChange={handleFilterChange}
-                      className="custom-input"
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="motivo">
-                    <Form.Label>Inserisci motivo:</Form.Label>
-                    <Form.Control
-                      placeholder="@motivo/giustificazione"
-                      type="text"
-                      name="motivo"
-                      value={filtri.motivo}
-                      onChange={handleFilterChange}
-                      className="custom-input"
-                      required
-                    />
-                  </Form.Group>
+                  <Button>Avvia Ricerca</Button>
+                  {search && search.assenze && search.assenze.length > 0 ? (
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Dipendente</th>
+                          <th>Assenza ID</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                          <th>Azioni</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {search.assenze.map((assenza) => (
+                          <tr
+                            key={search.id}
+                            className={`${cardSelezionata === dipendente.id ? "border-danger border-3" : ""}`}
+                          >
+                            <td>
+                              {search.nome} {search.cognome}
+                            </td>
+                            <td>{assenza.id}</td>
+                            <td>{assenza.data}</td>
+                            <td>{assenza.motivo}</td>
+                            <td>{assenza.stato}</td>
+                            <td>
+                              <Button
+                                variant={cardSelezionata === assenza.id ? "warning" : "primary"}
+                                onClick={() => selezionato(assenza.id)}
+                              >
+                                {toogle && cardSelezionata === dipendente.id
+                                  ? "Deseleziona assenza"
+                                  : "Seleziona assenza"}
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  ) : (
+                    search &&
+                    (filtri.id.length > 0 || filtri.dipendenteID > 0) &&
+                    showRicercaID && (
+                      <Col>
+                        <p>Nessuna assenza registrata!</p>
+                        <Button onClick={cleaner}>Riavvia ricerca</Button>
+                      </Col>
+                    )
+                  )}
+                  {nascondi && (
+                    <div className="d-flex  gap-5">
+                      <Form.Group controlId="nome">
+                        <Form.Label>Ricerca dipendente per Nome:</Form.Label>
+                        <Form.Control
+                          placeholder="@nome dipendente"
+                          type="text"
+                          name="nome"
+                          value={filtri.nome}
+                          onChange={handleFilterChange}
+                          className="custom-input"
+                        />
+                      </Form.Group>
+                      <Form.Group controlId="cognome">
+                        <Form.Label>Ricerca dipendente per Cognome:</Form.Label>
+                        <Form.Control
+                          placeholder="@cognome dipendente"
+                          type="text"
+                          name="cognome"
+                          value={filtri.cognome}
+                          onChange={handleFilterChange}
+                          className="custom-input"
+                        />
+                      </Form.Group>
+                      <Form.Group controlId="email">
+                        <Form.Label>Ricerca dipendente per Email:</Form.Label>
+                        <Form.Control
+                          placeholder="@email dipendente"
+                          type="text"
+                          name="email"
+                          value={filtri.email}
+                          onChange={handleFilterChange}
+                          className="custom-input"
+                        />
+                      </Form.Group>
+                    </div>
+                  )}
+                  {(filtri.nome.length > 0 || filtri.cognome.length > 0 || filtri.email.length > 0) && (
+                    <Table striped bordered hover className="mt-3">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>ID Assenza</th>
+                          <th>Data</th>
+                          <th>Motivo</th>
+                          <th>Stato</th>
+                          <th>Azioni</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dipendentiFiltrati.map((dipendente) =>
+                          dipendente.assenze.map((assenza) => (
+                            <tr key={assenza.id}>
+                              <td>
+                                {dipendente.nome} {dipendente.cognome}
+                              </td>
+                              <td>{assenza.id}</td>
+                              <td>{assenza.data}</td>
+                              <td>{assenza.motivo}</td>
+                              <td>{assenza.stato}</td>
+                              <td>
+                                <Button
+                                  onClick={() => selezionataEntita(assenza.id, dipendente.id)}
+                                  variant={filtri.id === assenza.id ? "warning" : "primary"}
+                                >
+                                  Seleziona
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  )}
+                  {showForm && (
+                    <div>
+                      <h6 className="mt-4">Crea o modifica Assenza per il dipendente</h6>
+                      <Form.Group controlId="data">
+                        <Form.Label>Inserisci data assenza:</Form.Label>
+                        <Form.Control
+                          type="date"
+                          name="data"
+                          value={filtri.data}
+                          onChange={handleFilterChange}
+                          className="custom-input"
+                          required
+                        />
+                      </Form.Group>
+                      <Form.Group controlId="motivo">
+                        <Form.Label>Inserisci motivo:</Form.Label>
+                        <Form.Control
+                          placeholder="@motivo/giustificazione"
+                          type="text"
+                          name="motivo"
+                          value={filtri.motivo}
+                          onChange={handleFilterChange}
+                          className="custom-input"
+                          required
+                        />
+                      </Form.Group>
+                      <Button className="my-3" onClick={handleSubmit}>
+                        Modifica
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
 
