@@ -289,7 +289,7 @@ const MyFiltri = () => {
         "Content-Type": "application/json",
       },
     };
-    if (filtri.azione === "POST" || filtri.azione === "DELETE" || filtri.azione == "PUT") {
+    if (filtri.azione === "POST" || filtri.azione == "PUT") {
       options.body = JSON.stringify(dipendenteData);
     }
 
@@ -333,25 +333,24 @@ const MyFiltri = () => {
           window.location.reload();
         }, 2000);
       }
-      const result = await resp.json();
-      if (filtri.azione === "POST") {
-        alert("creazione avvenuta con successo");
-      }
-      setSearch(result);
-      setShowRicercaID(true);
-      console.log("Assenza creata con successo:", result);
-      setMessaggio("Assenza creata con successo!");
-      if (filtri.azione === "DELETE") {
-        setTimeout(() => {
-          cleaner();
-          window.location.reload();
-        }, 2000);
-      } else if (filtri.azione === "PUT") {
-        alert("Entità modificata!");
-        setTimeout(() => {
-          cleaner();
-          window.location.reload();
-        }, 2000);
+      if (filtri.azione !== "DELETE") {
+        const result = await resp.json();
+        if (filtri.azione === "POST") {
+          alert("creazione avvenuta con successo");
+        }
+        setSearch(result);
+        console.log("aaaa", search);
+        setShowRicercaID(true);
+        console.log("Assenza creata con successo:", result);
+        setMessaggio("Assenza creata con successo!");
+
+        if (filtri.azione === "PUT") {
+          alert("Entità modificata!");
+          setTimeout(() => {
+            cleaner();
+            window.location.reload();
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error("Errore di connessione:", error);
@@ -496,10 +495,11 @@ const MyFiltri = () => {
           setShowRicercaID(true);
         }
       } else if (filtri.azione === "DELETE") {
-        if (filtri.id.length > 0 && (filtri.data.length > 0 || filtri.motivo.length > 0)) {
+        if (filtri.id.length > 0 && conferma) {
           crudEntitaFetch();
         } else if (filtri.id && filtri.id.length > 0) {
           searchEntitaFromDB();
+          setConferma(true);
           setNascondi(false);
           setShowForm(true);
         } else if (filtri.dipendenteID.length > 0) {
@@ -518,6 +518,7 @@ const MyFiltri = () => {
     setConferma(true);
     creaEditDipendente();
   };
+
   const dipendentiFiltrati = filtraDipendenti();
 
   useEffect(() => {
@@ -1116,6 +1117,7 @@ const MyFiltri = () => {
                     <th>Data</th>
                     <th>Motivo</th>
                     <th>Stato</th>
+                    {filtri.azione === "DELETE" && <th>Azione</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -1124,6 +1126,13 @@ const MyFiltri = () => {
                     <td>{search.data}</td>
                     <td>{search.motivo}</td>
                     <td>{search.stato}</td>
+                    {filtri.azione === "DELETE" && (
+                      <td>
+                        <Button size="sm" onClick={handleSubmit} className="btn-danger">
+                          ELIMINA
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 </tbody>
               </Table>
