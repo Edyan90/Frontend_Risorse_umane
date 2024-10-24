@@ -1459,7 +1459,9 @@ const MyFiltri = () => {
                       className="custom-input"
                     />
                   </Form.Group>
-                  <Button>Avvia Ricerca</Button>
+                  <Button className="my-3" onClick={handleSubmit}>
+                    Avvia Ricerca
+                  </Button>
                   {search && search.assenze && search.assenze.length > 0 ? (
                     <Table striped bordered hover>
                       <thead>
@@ -1490,9 +1492,7 @@ const MyFiltri = () => {
                                 variant={cardSelezionata === assenza.id ? "warning" : "primary"}
                                 onClick={() => selezionato(assenza.id)}
                               >
-                                {toogle && cardSelezionata === dipendente.id
-                                  ? "Deseleziona assenza"
-                                  : "Seleziona assenza"}
+                                {toogle && cardSelezionata === assenza.id ? "Deseleziona assenza" : "Seleziona assenza"}
                               </Button>
                             </td>
                           </tr>
@@ -1501,7 +1501,7 @@ const MyFiltri = () => {
                     </Table>
                   ) : (
                     search &&
-                    (filtri.id.length > 0 || filtri.dipendenteID > 0) &&
+                    filtri.dipendenteID > 0 &&
                     showRicercaID && (
                       <Col>
                         <p>Nessuna assenza registrata!</p>
