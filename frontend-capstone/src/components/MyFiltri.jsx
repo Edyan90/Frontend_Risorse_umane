@@ -56,14 +56,17 @@ const MyFiltri = () => {
   const selezionataEntita = (id, dipendenteID) => {
     if (!toogle) {
       setCardSelezionata(id);
-      setFiltri((prevFiltri) => ({ ...prevFiltri, id: id }));
-      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: dipendenteID }));
+      if (filtri.endpoint === "assenze") {
+        setFiltri((prevFiltri) => ({ ...prevFiltri, id: id }));
+      } else if (filtri.endpoint === "dipendenti") {
+        setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: dipendenteID })); // Solo l'ID del dipendente
+      }
       setShowForm(true);
       setToogle(true);
     } else {
       setCardSelezionata(null);
-      setFiltri((prevFiltri) => ({ ...prevFiltri, id: "" }));
-      setFiltri((prevFiltri) => ({ ...prevFiltri, dipendenteID: "" }));
+      setFiltri((prevFiltri) => ({ ...prevFiltri, id: "", dipendenteID: "" }));
+
       setShowForm(false);
       setToogle(false);
     }
@@ -331,12 +334,9 @@ const MyFiltri = () => {
         }, 2000);
       }
       const result = await resp.json();
-      if (filtri.endpoint === "POST") {
+      if (filtri.azione === "POST") {
         alert("creazione avvenuta con successo");
-      } else if (filtri.endpoint === "PUT") {
-        alert("MODIFICA avvenuta con successo");
       }
-
       setSearch(result);
       setShowRicercaID(true);
       console.log("Assenza creata con successo:", result);
@@ -487,7 +487,7 @@ const MyFiltri = () => {
           filtri.dipendenteID.length > 0
         ) {
           crudEntitaFetch();
-        } else if (filtri.id && filtri.id.length > 0) {
+        } else if (filtri.id && filtri.id.length > 0 && search.assenze.length > 0) {
           searchEntitaFromDB();
           setNascondi(false);
           setShowForm(true);
@@ -1478,7 +1478,7 @@ const MyFiltri = () => {
                         {search.assenze.map((assenza) => (
                           <tr
                             key={search.id}
-                            className={`${cardSelezionata === dipendente.id ? "border-danger border-3" : ""}`}
+                            className={`${cardSelezionata === assenza.id ? "border-danger border-3" : ""}`}
                           >
                             <td>
                               {search.nome} {search.cognome}
@@ -1490,7 +1490,7 @@ const MyFiltri = () => {
                             <td>
                               <Button
                                 variant={cardSelezionata === assenza.id ? "warning" : "primary"}
-                                onClick={() => selezionato(assenza.id)}
+                                onClick={() => selezionataEntita(assenza.id)}
                               >
                                 {toogle && cardSelezionata === assenza.id ? "Deseleziona assenza" : "Seleziona assenza"}
                               </Button>
