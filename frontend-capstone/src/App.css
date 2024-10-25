@@ -284,3 +284,18 @@ body {
   transform: scale(1.03);
   border: 1px solid black;
 }
+
+.custom-input {
+  width: 100%;
+  font-size: 1rem;
+}
+
+.custom-input::placeholder {
+  font-family: "Afacad Flux", sans-serif;
+  font-size: 1rem;
+}
+
+.custom-input:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-color: #04A7C8;
+}

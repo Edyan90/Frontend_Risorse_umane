@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Col, Row } from "react-bootstrap";
+import { Button, Card, Col, Row, Table } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -73,34 +73,53 @@ const Profile = () => {
             >
               <h4>Assenze</h4>
               {dipendenteAutenticato.assenze.length > 0 ? (
-                <ul>
-                  {dipendenteAutenticato.assenze.map((assenza) => (
-                    <li key={assenza.id}>
-                      <strong>Data:</strong> {new Date(assenza.data).toLocaleDateString()} - <strong>Motivo:</strong>{" "}
-                      {assenza.motivo} - <strong>Stato:</strong> {assenza.stato}
-                    </li>
-                  ))}
-                </ul>
+                <Table>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Motivo</th>
+                      <th>Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dipendenteAutenticato.assenze.map((assenza) => (
+                      <tr key={assenza.id}>
+                        <td>{new Date(assenza.data).toLocaleDateString()}</td>
+                        <td>{assenza.motivo}</td>
+                        <td>{assenza.stato}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
               ) : (
                 <p>Non ci sono assenze registrate.</p>
               )}
               <h4>Ferie</h4>
               {dipendenteAutenticato.ferie.length > 0 ? (
-                <ul>
-                  {dipendenteAutenticato.ferie.map((ferie) => (
-                    <li key={ferie.id}>
-                      <strong>Data Inizio:</strong> {new Date(ferie.dataInizio).toLocaleDateString()} -{" "}
-                      <strong>Data Fine:</strong> {new Date(ferie.dataFine).toLocaleDateString()} -{" "}
-                      <strong>Stato:</strong> {ferie.stato}
-                    </li>
-                  ))}
-                </ul>
+                <Table>
+                  <thead>
+                    <tr>
+                      <th>Data Inizio</th>
+                      <th>Data Fine</th>
+                      <th>Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dipendenteAutenticato.ferie.map((ferie) => (
+                      <tr key={ferie.id}>
+                        <td>{new Date(ferie.dataInizio).toLocaleDateString()}</td>
+                        <td>{new Date(ferie.dataFine).toLocaleDateString()}</td>
+                        <td>{ferie.stato}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
               ) : (
                 <p>Non ci sono ferie registrate.</p>
               )}
             </Col>
           </Row>
-          <Button onClick={() => navigate("/home")}>Torna alla Home</Button>)
+          <Button onClick={() => navigate("/home")}>Torna alla Home</Button>
         </>
       ) : (
         dipendente && (
@@ -138,28 +157,47 @@ const Profile = () => {
               >
                 <h4>Assenze</h4>
                 {dipendente.assenze.length > 0 ? (
-                  <ul>
-                    {dipendente.assenze.map((assenza) => (
-                      <li key={assenza.id}>
-                        <strong>Data:</strong> {new Date(assenza.data).toLocaleDateString()} - <strong>Motivo:</strong>{" "}
-                        {assenza.motivo} - <strong>Stato:</strong> {assenza.stato}
-                      </li>
-                    ))}
-                  </ul>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Motivo</th>
+                        <th>Stato</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dipendente.assenze.map((assenza) => (
+                        <tr key={assenza.id}>
+                          <td>{new Date(assenza.data).toLocaleDateString()}</td>
+                          <td>{assenza.motivo}</td>
+                          <td>{assenza.stato}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
                 ) : (
                   <p>Non ci sono assenze registrate.</p>
                 )}
                 <h4>Ferie</h4>
                 {dipendente.ferie.length > 0 ? (
-                  <ul>
-                    {dipendente.ferie.map((ferie) => (
-                      <li key={ferie.id}>
-                        <strong>Data Inizio:</strong> {new Date(ferie.dataInizio).toLocaleDateString()} -{" "}
-                        <strong>Data Fine:</strong> {new Date(ferie.dataFine).toLocaleDateString()} -{" "}
-                        <strong>Stato:</strong> {ferie.stato}
-                      </li>
-                    ))}
-                  </ul>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Data Inizio</th>
+                        <th>Data Fine</th>
+                        <th>Stato</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dipendente.ferie.map((ferie) => (
+                        <tr key={ferie.id}>
+                          <td>{new Date(ferie.dataInizio).toLocaleDateString()}</td>
+                          <td>{new Date(ferie.dataFine).toLocaleDateString()}</td>
+                          <td>{ferie.stato}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
                 ) : (
                   <p>Non ci sono ferie registrate.</p>
                 )}

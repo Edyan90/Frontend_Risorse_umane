@@ -16,6 +16,7 @@ const MyFiltri = () => {
   const [showRicercaID, setShowRicercaID] = useState(false);
   const [toogle, setToogle] = useState(false);
   const [conferma, setConferma] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [filtri, setFiltri] = useState({
     endpoint: "",
     azione: "",
@@ -113,6 +114,10 @@ const MyFiltri = () => {
       if (!resp.ok) {
         const errorResponse = await resp.json();
         throw new Error(errorResponse.message || "Errore nella fetch search-dipendente!");
+      }
+      if (resp.status === "404") {
+        alert("dipendente non trovato");
+        setNotFound(true);
       }
       const data = await resp.json();
       console.log("Dati ricevuti dal search:", data);
@@ -289,7 +294,7 @@ const MyFiltri = () => {
         "Content-Type": "application/json",
       },
     };
-    if (filtri.azione === "POST" || filtri.azione == "PUT") {
+    if (filtri.azione === "POST" || filtri.azione === "DELETE" || filtri.azione == "PUT") {
       options.body = JSON.stringify(dipendenteData);
     }
 
@@ -307,6 +312,9 @@ const MyFiltri = () => {
         setTimeout(() => {
           window.location.reload();
         }, 2000);
+      }
+      if (resp.status === 404) {
+        setNotFound(true);
       }
       const result = await resp.json();
       console.log("Dipendente creato con successo:", result);
@@ -337,9 +345,12 @@ const MyFiltri = () => {
         const result = await resp.json();
         if (filtri.azione === "POST") {
           alert("creazione avvenuta con successo");
+          setTimeout(() => {
+            cleaner();
+            window.location.reload();
+          }, 2000);
         }
         setSearch(result);
-        console.log("aaaa", search);
         setShowRicercaID(true);
         console.log("Assenza creata con successo:", result);
         setMessaggio("Assenza creata con successo!");
@@ -436,14 +447,14 @@ const MyFiltri = () => {
       setShowForm(true);
 
       if (
-        filtri.nomeCRUD ||
-        filtri.cognomeCRUD ||
-        filtri.email ||
-        filtri.stato ||
-        filtri.username ||
-        filtri.stipendio ||
-        filtri.password ||
-        filtri.data
+        filtri.nomeCRUD.length > 0 ||
+        filtri.cognomeCRUD.length > 0 ||
+        filtri.email.length > 0 ||
+        filtri.stato.length > 0 ||
+        filtri.username.length > 0 ||
+        filtri.stipendio.length > 0 ||
+        filtri.password.length > 0 ||
+        filtri.data.length > 0
       ) {
         creaEditDipendente();
         setShowModal(true);
@@ -513,6 +524,11 @@ const MyFiltri = () => {
   const cleaner = () => {
     setFiltri((state) => ({ ...state, dipendenteID: "", data: "", data2: "" }));
     setSearch({});
+    if (filtri.endpoint === "assenze" && filtri.azione === "GET") {
+      setFiltri((state) => ({ ...state, dipendenteID: "", id: "" }));
+      setShowRicercaID(false);
+    }
+    //ATTENZIONE QUI L'HO USATO SUL CERCA ASSENZE
   };
   const eliminazione = () => {
     setConferma(true);
@@ -1109,33 +1125,43 @@ const MyFiltri = () => {
             <Button className="my-3" onClick={handleSubmit}>
               Invia
             </Button>
-            {showRicercaID && search && search.motivo ? (
-              <Table striped bordered hover>
-                <thead>
-                  <tr>
-                    <th>Assenza ID</th>
-                    <th>Data</th>
-                    <th>Motivo</th>
-                    <th>Stato</th>
-                    {filtri.azione === "DELETE" && <th>Azione</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{search.id}</td>
-                    <td>{search.data}</td>
-                    <td>{search.motivo}</td>
-                    <td>{search.stato}</td>
-                    {filtri.azione === "DELETE" && (
-                      <td>
-                        <Button size="sm" onClick={handleSubmit} className="btn-danger">
-                          ELIMINA
-                        </Button>
-                      </td>
-                    )}
-                  </tr>
-                </tbody>
-              </Table>
+            {notFound ? (
+              <Col>
+                <div className="bg-white rounded p-4 my-3 w-25">
+                  <p>Nessun match trovato!</p>
+                  <Button onClick={cleaner}>Reset Filtri</Button>
+                </div>
+              </Col>
+            ) : showRicercaID && search && search.motivo ? (
+              <div>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Assenza ID</th>
+                      <th>Data</th>
+                      <th>Motivo</th>
+                      <th>Stato</th>
+                      {filtri.azione === "DELETE" && <th>Azione</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{search.id}</td>
+                      <td>{search.data}</td>
+                      <td>{search.motivo}</td>
+                      <td>{search.stato}</td>
+                      {filtri.azione === "DELETE" && (
+                        <td>
+                          <Button size="sm" onClick={handleSubmit} className="btn-danger">
+                            ELIMINA
+                          </Button>
+                        </td>
+                      )}
+                    </tr>
+                  </tbody>
+                </Table>
+                <Button onClick={cleaner}>Reset Filtri</Button>
+              </div>
             ) : showRicercaID && search && search.assenze && search.assenze.length > 0 ? (
               <Table striped bordered hover>
                 <thead>
@@ -1168,8 +1194,10 @@ const MyFiltri = () => {
             ) : (
               showRicercaID && (
                 <Col>
-                  <p>Nessuna assenza registrata!</p>
-                  <Button onClick={() => navigate("/home")}>Torna alla Home</Button>
+                  <div className="bg-white rounded p-4 my-3 w-25">
+                    <p>Nessun record trovato!</p>
+                    <Button onClick={cleaner}>Reset Filtri</Button>
+                  </div>
                 </Col>
               )
             )}
@@ -1232,9 +1260,20 @@ const MyFiltri = () => {
                         <td>{assenza.data}</td>
                         <td>{assenza.motivo}</td>
                         <td>{assenza.stato}</td>
-                        <td>
-                          <Button onClick={() => navigate(`/dipendenti/${dipendente.id}`)}>Approva</Button>
-                        </td>
+                        {filtri.azione === "GET" ? (
+                          <td>
+                            <Button>Approva</Button>
+                            <Button>Rifiuta</Button>
+                          </td>
+                        ) : (
+                          filtri.azione === "DELETE" && (
+                            <td>
+                              <Button size="sm" onClick={handleSubmit} className="btn-danger">
+                                ELIMINA
+                              </Button>
+                            </td>
+                          )
+                        )}
                       </tr>
                     ))
                   )}
